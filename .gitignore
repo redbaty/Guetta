@@ -350,3 +350,4 @@ MigrationBackup/
 .ionide/
 
 .idea/
+Guetta/Properties/launchSettings.json
