@@ -2,6 +2,7 @@
 using Discord;
 using Discord.WebSocket;
 using Guetta.Abstractions;
+using Guetta.App;
 
 namespace Guetta.Commands
 {
@@ -11,8 +12,7 @@ namespace Guetta.Commands
         {
             AudioChannelService = audioChannelService;
         }
-
-
+        
         private AudioChannelService AudioChannelService { get; }
 
         public async Task ExecuteAsync(SocketMessage message, string[] args)

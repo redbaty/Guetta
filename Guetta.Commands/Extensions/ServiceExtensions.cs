@@ -1,7 +1,7 @@
 ﻿using Guetta.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Guetta.Extensions
+namespace Guetta.Commands.Extensions
 {
     internal static class ServiceExtensions
     {

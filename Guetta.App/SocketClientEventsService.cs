@@ -3,12 +3,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using Guetta.Extensions;
+using Guetta.App.Extensions;
 using Microsoft.Extensions.Logging;
 
-namespace Guetta
+namespace Guetta.App
 {
-    internal class SocketClientEventsService
+    public class SocketClientEventsService
     {
         public SocketClientEventsService(CommandSolverService commandSolverService, ILogger<SocketClientEventsService> logger)
         {

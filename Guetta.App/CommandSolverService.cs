@@ -3,9 +3,9 @@ using Guetta.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Guetta
+namespace Guetta.App
 {
-    internal class CommandSolverService
+    public class CommandSolverService
     {
         private ILogger<CommandSolverService> Logger { get; }
 

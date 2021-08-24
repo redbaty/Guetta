@@ -1,48 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Audio;
 using Guetta.Abstractions;
-using Guetta.Extensions;
+using Guetta.App.Extensions;
+using Guetta.Localisation;
 using Microsoft.Extensions.Logging;
 
-namespace Guetta
+namespace Guetta.App
 {
-    internal class QueueService
+    public class QueueService
     {
-        public QueueService(YoutubeDlService youtubeDlService, ILogger<QueueService> logger)
+        public QueueService(ILogger<QueueService> logger,
+            LocalisationService localisationService, PlayingService playingService)
         {
-            YoutubeDlService = youtubeDlService;
             Logger = logger;
+            LocalisationService = localisationService;
+            PlayingService = playingService;
         }
-
-        private IAudioClient AudioClient { get; set; }
 
         private Queue<QueueItem> Queue { get; } = new();
 
         private ILogger<QueueService> Logger { get; }
 
-        private YoutubeDlService YoutubeDlService { get; }
-
         private Task LoopQueue { get; set; }
+        
+        private PlayingService PlayingService { get; }
 
         private CancellationTokenSource CancellationTokenSource { get; set; }
-        
+
         private QueueItem CurrentItem { get; set; }
 
-        public void SetAudioClient(IAudioClient audioClient)
-        {
-            AudioClient?.Dispose();
-            AudioClient = audioClient;
-        }
+        private LocalisationService LocalisationService { get; }
 
         private void ReOrderQueue()
         {
             var index = 1;
-            
+
             foreach (var queueItem in Queue)
             {
                 queueItem.CurrentQueueIndex = index;
@@ -62,17 +57,15 @@ namespace Guetta
                     CurrentItem = queueItem;
                     queueItem.CurrentQueueIndex = 0;
                     ReOrderQueue();
-                    
+
                     Logger.LogInformation("Playing {@Url} requested by {@User}", queueItem.YoutubeDlInput,
                         queueItem.User.Username);
-                    
+
+                    CancellationTokenSource?.Dispose();
                     CancellationTokenSource = new CancellationTokenSource();
-                    await queueItem.Channel.SendMessageAsync(
-                            $"Ovo botar a musga que o {queueItem.User.Mention} mandou tocar \"{queueItem.VideoInformation.Title}\"")
-                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+
                     queueItem.Playing = true;
-                    await Play(queueItem.YoutubeDlInput, CancellationTokenSource.Token)
-                        .ContinueWith(_ => Task.CompletedTask);
+                    await PlayingService.Play(queueItem, CancellationTokenSource.Token);
                     queueItem.Playing = false;
                 }
 
@@ -80,24 +73,22 @@ namespace Guetta
             });
         }
 
-        internal IEnumerable<QueueItem> GetQueueItems()
+        public IEnumerable<QueueItem> GetQueueItems()
         {
-            foreach (var queueItem in Queue)
-            {
-                yield return queueItem;
-            }
+            foreach (var queueItem in Queue) yield return queueItem;
 
-            if (CurrentItem != null)
-            {
-                yield return CurrentItem;
-            }
+            if (CurrentItem != null) yield return CurrentItem;
         }
 
-        public bool CanPlay() =>
-            AudioClient is {ConnectionState: ConnectionState.Connected};
+        public bool CanPlay()
+        {
+            return PlayingService.AudioClient is { ConnectionState: ConnectionState.Connected };
+        }
 
         public bool CanSkip()
-            => CanPlay() && CancellationTokenSource != null;
+        {
+            return CanPlay() && CancellationTokenSource != null;
+        }
 
         public void Enqueue(QueueItem item)
         {
@@ -113,11 +104,6 @@ namespace Guetta
                 CancellationTokenSource.Cancel();
                 CancellationTokenSource = null;
             }
-        }
-
-        private async Task Play(string url, CancellationToken cancellationToken)
-        {
-            await YoutubeDlService.GetAudioStream(url, 0.1, AudioClient, cancellationToken);
         }
     }
 }

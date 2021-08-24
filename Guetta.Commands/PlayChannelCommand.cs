@@ -4,30 +4,38 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Guetta.Abstractions;
-using Guetta.Extensions;
+using Guetta.App;
+using Guetta.App.Extensions;
+using Guetta.Localisation;
 
 namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(QueueService queueService, AudioChannelService audioChannelService, YoutubeDlService youtubeDlService)
+        public PlayChannelCommand(QueueService queueService, AudioChannelService audioChannelService,
+            YoutubeDlService youtubeDlService, LocalisationService localisationService)
         {
             QueueService = queueService;
             AudioChannelService = audioChannelService;
             YoutubeDlService = youtubeDlService;
+            LocalisationService = localisationService;
         }
 
         private QueueService QueueService { get; }
 
         private AudioChannelService AudioChannelService { get; }
-        
+
         private YoutubeDlService YoutubeDlService { get; }
+
+        private LocalisationService LocalisationService { get; }
 
         public async Task ExecuteAsync(SocketMessage message, string[] arguments)
         {
             if (arguments.Length < 1)
             {
-                await message.Channel.SendMessageAsync("Argumentos inválidos");
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "InvalidArgument", message.Author.Mention)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
                 return;
             }
 
@@ -39,7 +47,9 @@ namespace Guetta.Commands
                 }
                 else
                 {
-                    await message.Channel.SendMessageAsync("Não está em canal");
+                    await LocalisationService
+                        .SendMessageAsync(message.Channel, "NotInChannel", message.Author.Mention)
+                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
                     return;
                 }
             }
@@ -47,8 +57,8 @@ namespace Guetta.Commands
             await message.Channel.TriggerTypingAsync();
             var url = arguments.Last();
             string input;
-            
-            
+
+
             if (Uri.TryCreate(url, UriKind.Absolute, out _))
             {
                 input = url;
@@ -59,6 +69,10 @@ namespace Guetta.Commands
             }
 
             var videoInformation = await YoutubeDlService.GetVideoInformation(input);
+
+            await LocalisationService
+                .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
+                .DeleteMessageAfter(TimeSpan.FromSeconds(5));
             
             QueueService.Enqueue(new QueueItem
             {
@@ -67,9 +81,6 @@ namespace Guetta.Commands
                 YoutubeDlInput = input,
                 VideoInformation = videoInformation
             });
-
-            await message.Channel.SendMessageAsync("Música enfileirada")
-                .DeleteMessageAfter(TimeSpan.FromSeconds(5));
         }
     }
 }

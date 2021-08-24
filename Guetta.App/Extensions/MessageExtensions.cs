@@ -3,16 +3,16 @@ using System.Threading.Tasks;
 using Discord.Rest;
 using Discord.WebSocket;
 
-namespace Guetta.Extensions
+namespace Guetta.App.Extensions
 {
-    internal static class MessageExtensions
+    public static class MessageExtensions
     {
         public static Task DeleteMessageAfter(this SocketMessage message, TimeSpan timeout)
         {
             return Task.Run(async () =>
             {
                 await Task.Delay(timeout);
-                await message.DeleteAsync();
+                await message.DeleteAsync().ContinueWith(_ => Task.CompletedTask);
             });
         }
 

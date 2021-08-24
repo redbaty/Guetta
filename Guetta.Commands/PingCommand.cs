@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Guetta.Abstractions;
-using Guetta.Extensions;
+using Guetta.App.Extensions;
 
 namespace Guetta.Commands
 {
