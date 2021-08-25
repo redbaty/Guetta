@@ -1,12 +1,13 @@
-﻿using System;
-using System.Globalization;
-using System.IO;
+﻿using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
+using CliWrap.EventStream;
+using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.IO;
@@ -19,8 +20,6 @@ namespace Guetta.App
         {
             Logger = logger;
         }
-
-        private static RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; } = new();
 
         private ILogger<YoutubeDlService> Logger { get; }
 
@@ -57,11 +56,10 @@ namespace Guetta.App
                 Url = $"https://www.youtube.com/watch?v={rootElement.GetProperty("id").GetString()}",
                 Title = rootElement.GetProperty("title").GetString()
             };
-
-        public async Task<byte[]> GetYoutubeAudioStream(string input, CancellationToken cancellationToken)
+        
+        public async Task SendToAudioStream(string input, CancellationToken cancellationToken,
+            VoiceTransmitSink currentDiscordStream)
         {
-            await using var youtubeAudioStream = RecyclableMemoryStreamManager.GetStream();
-            
             var youtubeDlArguments = new[]
             {
                 "-f bestaudio",
@@ -72,18 +70,10 @@ namespace Guetta.App
             var youtubeDlCommand = Cli.Wrap("youtube-dl")
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(s =>
                     Logger.LogDebug("Youtube-DL message: {@Message}", s)))
-                .WithStandardOutputPipe(PipeTarget.ToStream(youtubeAudioStream))
                 .WithArguments(youtubeDlArguments, false);
 
             Logger.LogDebug("{@Program} arguments: {@Arguments}", "youtube-dl", youtubeDlArguments);
-            await youtubeDlCommand.ExecuteAsync(cancellationToken);
-            return youtubeAudioStream.ToArray();
-        }
 
-        public async Task<byte[]> GetAudioStream(byte[] inputAudioStream, double volume, CancellationToken cancellationToken)
-        {
-            await using var convertedAudioStream = RecyclableMemoryStreamManager.GetStream();
-            
             var ffmpegArguments = new[]
             {
                 "-hide_banner",
@@ -91,20 +81,20 @@ namespace Guetta.App
                 "-ac 2",
                 "-f s16le",
                 "-ar 48000",
-                $"-filter:a \"volume={volume.ToString(CultureInfo.InvariantCulture)}\"",
                 "-"
             };
 
             Logger.LogDebug("{@Program} arguments: {@Arguments}", "ffmpeg", ffmpegArguments);
 
+            await using var stream = new VoiceTransmitSinkStream(currentDiscordStream);
+            
             var ffmpegCommand = Cli.Wrap("ffmpeg")
-                .WithStandardInputPipe(PipeSource.FromBytes(inputAudioStream))
-                .WithStandardOutputPipe(PipeTarget.ToStream(convertedAudioStream))
+                .WithStandardInputPipe(PipeSource.FromCommand(youtubeDlCommand))
+                .WithStandardOutputPipe(PipeTarget.ToStream(stream))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(s => Logger.LogDebug("FFMpeg message: {@Message}", s)))
                 .WithArguments(ffmpegArguments, false);
 
-            await ffmpegCommand.ExecuteAsync(cancellationToken);
-            return convertedAudioStream.ToArray();
+            await ffmpegCommand.ExecuteAsync();
         }
     }
 }

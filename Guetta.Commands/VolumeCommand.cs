@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Discord.WebSocket;
+using DSharpPlus.Entities;
 using Guetta.Abstractions;
 using Guetta.App;
 using Guetta.App.Extensions;
@@ -17,7 +17,7 @@ namespace Guetta.Commands
 
         private PlayingService PlayingService { get; }
         
-        public async Task ExecuteAsync(SocketMessage message, string[] arguments)
+        public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
             if (int.TryParse(arguments[0], out var volume))
             {

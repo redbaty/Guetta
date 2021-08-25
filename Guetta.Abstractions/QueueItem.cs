@@ -1,13 +1,12 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using DSharpPlus.Entities;
 
 namespace Guetta.Abstractions
 {
     public class QueueItem
     {
-        public IUser User { get; init; }
+        public DiscordUser User { get; init; }
 
-        public ISocketMessageChannel Channel { get; init; }
+        public DiscordChannel Channel { get; init; }
 
         public string YoutubeDlInput { get; init; }
 

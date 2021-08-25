@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Discord;
-using Discord.WebSocket;
+using DSharpPlus;
+using DSharpPlus.VoiceNext;
 using Guetta.App;
 using Guetta.App.Extensions;
-using Guetta.Commands;
 using Guetta.Commands.Extensions;
 using Guetta.Exceptions;
 using Guetta.Localisation;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Serilog.Extensions.Logging;
 
 namespace Guetta
 {
@@ -25,9 +25,13 @@ namespace Guetta
                 .CreateLogger();
             AppDomain.CurrentDomain.UnhandledException += CurrentDomainOnUnhandledException;
 
-            var discordSocketClient = new DiscordSocketClient();
-            await discordSocketClient.LoginAsync(TokenType.Bot,
-                Environment.GetEnvironmentVariable("TOKEN") ?? throw new MissingEnvironmentVariableException("TOKEN"));
+            var discordSocketClient = new DiscordClient(new DiscordConfiguration
+            {
+                Token =  Environment.GetEnvironmentVariable("TOKEN") ?? throw new MissingEnvironmentVariableException("TOKEN"),
+                TokenType = TokenType.Bot,
+                LoggerFactory = new SerilogLoggerFactory()
+            });
+            discordSocketClient.UseVoiceNext();
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddOptions();
@@ -42,7 +46,7 @@ namespace Guetta
 
             var socketClientEventsService = serviceProvider.GetService<SocketClientEventsService>();
             socketClientEventsService!.Subscribe(discordSocketClient);
-            await discordSocketClient.StartAsync();
+            await discordSocketClient.ConnectAsync();
 
             await Task.Delay(-1);
         }

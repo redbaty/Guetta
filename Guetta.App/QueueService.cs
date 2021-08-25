@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Discord;
 using Guetta.Abstractions;
-using Guetta.App.Extensions;
 using Guetta.Localisation;
 using Microsoft.Extensions.Logging;
 
@@ -82,7 +79,7 @@ namespace Guetta.App
 
         public bool CanPlay()
         {
-            return PlayingService.AudioClient is { ConnectionState: ConnectionState.Connected };
+            return PlayingService.AudioClient is { };
         }
 
         public bool CanSkip()

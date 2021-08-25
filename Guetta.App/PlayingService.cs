@@ -1,7 +1,8 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Discord.Audio;
+using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
@@ -18,13 +19,11 @@ namespace Guetta.App
 
         private QueueItem CurrentItem { get; set; }
         
-        private AudioOutStream CurrentDiscordStream { get; set; }
+        private VoiceTransmitSink CurrentDiscordStream { get; set; }
         
         private YoutubeDlService YoutubeDlService { get; }
 
-        public double Volume { get; private set; } = 0.1f;
-        
-        internal IAudioClient AudioClient { get; private set; }
+        internal VoiceNextConnection AudioClient { get; private set; }
         
         private byte[] CurrentYoutubeAudioStream { get; set; }
         
@@ -32,15 +31,13 @@ namespace Guetta.App
         
         private LocalisationService LocalisationService { get; }
 
-        public async Task ChangeVolume(double newVolume, CancellationToken cancellationToken)
+        public Task ChangeVolume(double newVolume, CancellationToken cancellationToken)
         {
-            Volume = newVolume;
-            
-            if(CurrentFfmpegAudioStream != null)
-                CurrentFfmpegAudioStream = await YoutubeDlService.GetAudioStream(CurrentYoutubeAudioStream, Volume, cancellationToken);
+            CurrentDiscordStream.VolumeModifier = newVolume;
+            return Task.CompletedTask;
         }
         
-        public void SetAudioClient(IAudioClient audioClient)
+        public void SetAudioClient(VoiceNextConnection audioClient)
         {
             AudioClient?.Dispose();
             AudioClient = audioClient;
@@ -48,14 +45,8 @@ namespace Guetta.App
 
         public async Task Play(QueueItem queueItem, CancellationToken cancellationToken)
         {
-            if (CurrentDiscordStream != null)
-            {
-                await CurrentDiscordStream.FlushAsync(cancellationToken);
-                await CurrentDiscordStream.DisposeAsync();
-            }
-
             CurrentItem = queueItem;
-            CurrentDiscordStream = AudioClient.CreatePCMStream(AudioApplication.Music);
+            CurrentDiscordStream ??= AudioClient.GetTransmitSink();
             
             try
             {
@@ -64,26 +55,15 @@ namespace Guetta.App
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
                 await CurrentItem.Channel.TriggerTypingAsync();
                 
-                CurrentYoutubeAudioStream = await YoutubeDlService.GetYoutubeAudioStream(CurrentItem.YoutubeDlInput, cancellationToken);
-                
                 await LocalisationService.SendMessageAsync(CurrentItem.Channel, "SongPlaying",
                         CurrentItem.VideoInformation.Title, CurrentItem.User.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
                 
-                CurrentFfmpegAudioStream = await YoutubeDlService.GetAudioStream(CurrentYoutubeAudioStream, Volume, cancellationToken);
-                
-                for (var i = 0; i < CurrentFfmpegAudioStream.Length; i++)
-                {
-                    CurrentDiscordStream.WriteByte(CurrentFfmpegAudioStream[i]);
-                    
-                    if(cancellationToken.IsCancellationRequested)
-                        break;
-                }
+                await YoutubeDlService.SendToAudioStream(CurrentItem.YoutubeDlInput, cancellationToken, CurrentDiscordStream);
             }
             finally
             {
                 await CurrentDiscordStream.FlushAsync(CancellationToken.None);
-                await CurrentDiscordStream.DisposeAsync();
                 CurrentDiscordStream = null;
                 CurrentYoutubeAudioStream = null;
                 CurrentFfmpegAudioStream = null;
