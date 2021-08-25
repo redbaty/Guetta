@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Guetta.Abstractions;
@@ -22,7 +21,7 @@ namespace Guetta.Commands
             if (int.TryParse(arguments[0], out var volume))
             {
                 await message.Channel.TriggerTypingAsync();
-                await PlayingService.ChangeVolume(volume / 100f, CancellationToken.None);
+                await PlayingService.ChangeVolume(volume / 100f);
                 await message.Channel.SendMessageAsync("Volume alterado queridão").DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
         }

@@ -1,16 +1,13 @@
-﻿using System.Globalization;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
-using CliWrap.EventStream;
 using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
 using Microsoft.Extensions.Logging;
-using Microsoft.IO;
 
 namespace Guetta.App
 {
@@ -23,7 +20,7 @@ namespace Guetta.App
 
         private ILogger<YoutubeDlService> Logger { get; }
 
-        public async Task<VideoInformation> GetVideoInformation(string input)
+        public async Task<VideoInformation> GetVideoInformation(string input, CancellationToken cancellationToken)
         {
             var youtubeDlArguments = new[]
             {
@@ -33,7 +30,7 @@ namespace Guetta.App
 
             var youtubeDlCommand = await Cli.Wrap("youtube-dl")
                 .WithArguments(youtubeDlArguments, false)
-                .ExecuteBufferedAsync();
+                .ExecuteBufferedAsync(Encoding.UTF8, cancellationToken);
 
             var jsonDocument = JsonDocument.Parse(youtubeDlCommand.StandardOutput);
             var rootElement = jsonDocument.RootElement;
@@ -57,8 +54,7 @@ namespace Guetta.App
                 Title = rootElement.GetProperty("title").GetString()
             };
         
-        public async Task SendToAudioStream(string input, CancellationToken cancellationToken,
-            VoiceTransmitSink currentDiscordStream)
+        public async Task SendToAudioSink(string input, VoiceTransmitSink currentDiscordStream, CancellationToken cancellationToken)
         {
             var youtubeDlArguments = new[]
             {
@@ -67,6 +63,7 @@ namespace Guetta.App
                 $"\"{input}\"",
                 "-o -"
             };
+            
             var youtubeDlCommand = Cli.Wrap("youtube-dl")
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(s =>
                     Logger.LogDebug("Youtube-DL message: {@Message}", s)))
@@ -77,6 +74,7 @@ namespace Guetta.App
             var ffmpegArguments = new[]
             {
                 "-hide_banner",
+                "-hwaccel auto",
                 "-i -",
                 "-ac 2",
                 "-f s16le",
@@ -90,11 +88,11 @@ namespace Guetta.App
             
             var ffmpegCommand = Cli.Wrap("ffmpeg")
                 .WithStandardInputPipe(PipeSource.FromCommand(youtubeDlCommand))
-                .WithStandardOutputPipe(PipeTarget.ToStream(stream))
+                .WithStandardOutputPipe(PipeTarget.ToStream(stream, false))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(s => Logger.LogDebug("FFMpeg message: {@Message}", s)))
                 .WithArguments(ffmpegArguments, false);
 
-            await ffmpegCommand.ExecuteAsync();
+            await ffmpegCommand.ExecuteAsync(cancellationToken);
         }
     }
 }

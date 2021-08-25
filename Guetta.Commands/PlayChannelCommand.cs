@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Guetta.Abstractions;
@@ -67,7 +68,7 @@ namespace Guetta.Commands
                 input = $"ytsearch:{message.Content}";
             }
 
-            var videoInformation = await YoutubeDlService.GetVideoInformation(input);
+            var videoInformation = await YoutubeDlService.GetVideoInformation(input, CancellationToken.None);
 
             await LocalisationService
                 .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)

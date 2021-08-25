@@ -31,7 +31,7 @@ namespace Guetta.App
         
         private LocalisationService LocalisationService { get; }
 
-        public Task ChangeVolume(double newVolume, CancellationToken cancellationToken)
+        public Task ChangeVolume(double newVolume)
         {
             CurrentDiscordStream.VolumeModifier = newVolume;
             return Task.CompletedTask;
@@ -59,7 +59,7 @@ namespace Guetta.App
                         CurrentItem.VideoInformation.Title, CurrentItem.User.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
                 
-                await YoutubeDlService.SendToAudioStream(CurrentItem.YoutubeDlInput, cancellationToken, CurrentDiscordStream);
+                await YoutubeDlService.SendToAudioSink(CurrentItem.YoutubeDlInput, CurrentDiscordStream, cancellationToken);
             }
             finally
             {

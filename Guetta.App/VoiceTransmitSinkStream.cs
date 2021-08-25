@@ -15,16 +15,11 @@ namespace Guetta.App
 
         private VoiceTransmitSink Sink { get; }
 
-        public override bool CanRead { get; } = false;
-        public override bool CanSeek { get; } = false;
-        public override bool CanWrite { get; } = true;
-        public override long Length { get; } = 0;
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => true;
+        public override long Length => 0;
         public override long Position { get; set; }
-
-        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
-        {
-            return new ValueTask(Sink.WriteAsync(buffer, cancellationToken));
-        }
 
         public override void Flush()
         {
@@ -50,14 +45,14 @@ namespace Guetta.App
             throw new NotImplementedException();
         }
 
-        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-        {
-            return Sink.WriteAsync(buffer, offset, count, cancellationToken);
-        }
-
         public override void Write(byte[] buffer, int offset, int count)
         {
             throw new NotImplementedException();
+        }
+
+        public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            await Sink.WriteAsync(buffer.AsMemory(offset, count), cancellationToken);
         }
     }
 }
