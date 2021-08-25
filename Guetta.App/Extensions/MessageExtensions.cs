@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Discord.Rest;
-using Discord.WebSocket;
+using DSharpPlus.Entities;
 
 namespace Guetta.App.Extensions
 {
     public static class MessageExtensions
     {
-        public static Task DeleteMessageAfter(this SocketMessage message, TimeSpan timeout)
+        public static Task DeleteMessageAfter(this DiscordMessage message, TimeSpan timeout)
         {
             return Task.Run(async () =>
             {
@@ -17,7 +16,7 @@ namespace Guetta.App.Extensions
         }
 
 
-        public static Task DeleteMessageAfter(this Task<RestUserMessage> message, TimeSpan timeout)
+        public static Task DeleteMessageAfter(this Task<DiscordMessage> message, TimeSpan timeout)
         {
             return message.ContinueWith(t =>
             {

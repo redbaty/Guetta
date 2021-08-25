@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Discord;
-using Discord.WebSocket;
+using DSharpPlus.Entities;
+using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
 using Guetta.App;
 
@@ -15,11 +15,11 @@ namespace Guetta.Commands
         
         private AudioChannelService AudioChannelService { get; }
 
-        public async Task ExecuteAsync(SocketMessage message, string[] args)
+        public async Task ExecuteAsync(DiscordMessage message, string[] args)
         {
-            if (message.Author is IGuildUser {VoiceChannel: { }} author)
+            if (message.Author is DiscordMember { VoiceState: {Channel: {}}} discordMember)
             {
-                await AudioChannelService.Join(author.VoiceChannel);
+                await AudioChannelService.Join(discordMember.VoiceState.Channel);
             }
             else
             {

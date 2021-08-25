@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using Discord.Rest;
-using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
+using DSharpPlus.Entities;
 using Microsoft.Extensions.Options;
 
 namespace Guetta.Localisation
@@ -25,7 +22,7 @@ namespace Guetta.Localisation
         private const string DefaultLanguage = "en";
         
 
-        public async Task<RestUserMessage> SendMessageAsync(ISocketMessageChannel channel, string code,
+        public async Task<DiscordMessage> SendMessageAsync(DiscordChannel channel, string code,
             params object[] parameters)
         {
             var messageTemplate = //Items.GetValueOrDefault(Options.Value.Language)?.GetValueOrDefault(code) ??

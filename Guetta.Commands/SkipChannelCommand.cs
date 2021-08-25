@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Discord.WebSocket;
+using DSharpPlus.Entities;
 using Guetta.Abstractions;
 using Guetta.App;
 using Guetta.App.Extensions;
@@ -20,7 +20,7 @@ namespace Guetta.Commands
         
         private LocalisationService LocalisationService { get; }
         
-        public async Task ExecuteAsync(SocketMessage message, string[] arguments)
+        public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
             if (!QueueService.CanSkip())
             {

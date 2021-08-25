@@ -1,15 +1,13 @@
-﻿using System;
-using System.Globalization;
-using System.IO;
-using System.Linq;
+﻿using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
+using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
 using Microsoft.Extensions.Logging;
-using Microsoft.IO;
 
 namespace Guetta.App
 {
@@ -20,11 +18,9 @@ namespace Guetta.App
             Logger = logger;
         }
 
-        private static RecyclableMemoryStreamManager RecyclableMemoryStreamManager { get; } = new();
-
         private ILogger<YoutubeDlService> Logger { get; }
 
-        public async Task<VideoInformation> GetVideoInformation(string input)
+        public async Task<VideoInformation> GetVideoInformation(string input, CancellationToken cancellationToken)
         {
             var youtubeDlArguments = new[]
             {
@@ -34,7 +30,7 @@ namespace Guetta.App
 
             var youtubeDlCommand = await Cli.Wrap("youtube-dl")
                 .WithArguments(youtubeDlArguments, false)
-                .ExecuteBufferedAsync();
+                .ExecuteBufferedAsync(Encoding.UTF8, cancellationToken);
 
             var jsonDocument = JsonDocument.Parse(youtubeDlCommand.StandardOutput);
             var rootElement = jsonDocument.RootElement;
@@ -57,11 +53,9 @@ namespace Guetta.App
                 Url = $"https://www.youtube.com/watch?v={rootElement.GetProperty("id").GetString()}",
                 Title = rootElement.GetProperty("title").GetString()
             };
-
-        public async Task<byte[]> GetYoutubeAudioStream(string input, CancellationToken cancellationToken)
+        
+        public async Task SendToAudioSink(string input, VoiceTransmitSink currentDiscordStream, CancellationToken cancellationToken)
         {
-            await using var youtubeAudioStream = RecyclableMemoryStreamManager.GetStream();
-            
             var youtubeDlArguments = new[]
             {
                 "-f bestaudio",
@@ -69,42 +63,36 @@ namespace Guetta.App
                 $"\"{input}\"",
                 "-o -"
             };
+            
             var youtubeDlCommand = Cli.Wrap("youtube-dl")
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(s =>
                     Logger.LogDebug("Youtube-DL message: {@Message}", s)))
-                .WithStandardOutputPipe(PipeTarget.ToStream(youtubeAudioStream))
                 .WithArguments(youtubeDlArguments, false);
 
             Logger.LogDebug("{@Program} arguments: {@Arguments}", "youtube-dl", youtubeDlArguments);
-            await youtubeDlCommand.ExecuteAsync(cancellationToken);
-            return youtubeAudioStream.ToArray();
-        }
 
-        public async Task<byte[]> GetAudioStream(byte[] inputAudioStream, double volume, CancellationToken cancellationToken)
-        {
-            await using var convertedAudioStream = RecyclableMemoryStreamManager.GetStream();
-            
             var ffmpegArguments = new[]
             {
                 "-hide_banner",
+                "-hwaccel auto",
                 "-i -",
                 "-ac 2",
                 "-f s16le",
                 "-ar 48000",
-                $"-filter:a \"volume={volume.ToString(CultureInfo.InvariantCulture)}\"",
                 "-"
             };
 
             Logger.LogDebug("{@Program} arguments: {@Arguments}", "ffmpeg", ffmpegArguments);
 
+            await using var stream = new VoiceTransmitSinkStream(currentDiscordStream);
+            
             var ffmpegCommand = Cli.Wrap("ffmpeg")
-                .WithStandardInputPipe(PipeSource.FromBytes(inputAudioStream))
-                .WithStandardOutputPipe(PipeTarget.ToStream(convertedAudioStream))
+                .WithStandardInputPipe(PipeSource.FromCommand(youtubeDlCommand))
+                .WithStandardOutputPipe(PipeTarget.ToStream(stream, false))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(s => Logger.LogDebug("FFMpeg message: {@Message}", s)))
                 .WithArguments(ffmpegArguments, false);
 
             await ffmpegCommand.ExecuteAsync(cancellationToken);
-            return convertedAudioStream.ToArray();
         }
     }
 }

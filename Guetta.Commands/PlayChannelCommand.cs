@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Discord;
-using Discord.WebSocket;
+using DSharpPlus.Entities;
 using Guetta.Abstractions;
 using Guetta.App;
 using Guetta.App.Extensions;
@@ -29,7 +29,7 @@ namespace Guetta.Commands
 
         private LocalisationService LocalisationService { get; }
 
-        public async Task ExecuteAsync(SocketMessage message, string[] arguments)
+        public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
             if (arguments.Length < 1)
             {
@@ -41,9 +41,9 @@ namespace Guetta.Commands
 
             if (!QueueService.CanPlay())
             {
-                if (message.Author is IGuildUser {VoiceChannel: { }} author)
+                if (message.Author is DiscordMember { VoiceState: { Channel: { } } } discordMember)
                 {
-                    await AudioChannelService.Join(author.VoiceChannel);
+                    await AudioChannelService.Join(discordMember.VoiceState.Channel);
                 }
                 else
                 {
@@ -68,12 +68,12 @@ namespace Guetta.Commands
                 input = $"ytsearch:{message.Content}";
             }
 
-            var videoInformation = await YoutubeDlService.GetVideoInformation(input);
+            var videoInformation = await YoutubeDlService.GetVideoInformation(input, CancellationToken.None);
 
             await LocalisationService
                 .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
                 .DeleteMessageAfter(TimeSpan.FromSeconds(5));
-            
+
             QueueService.Enqueue(new QueueItem
             {
                 User = message.Author,

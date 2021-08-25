@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
-using Discord.WebSocket;
+using DSharpPlus.Entities;
 
 namespace Guetta.Abstractions
 {
     public interface IDiscordCommand
     {
-        Task ExecuteAsync(SocketMessage message, string[] arguments);
+        Task ExecuteAsync(DiscordMessage message, string[] arguments);
     }
 }

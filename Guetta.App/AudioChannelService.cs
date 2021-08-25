@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Discord;
+using DSharpPlus.Entities;
+using DSharpPlus.VoiceNext;
 
 namespace Guetta.App
 {
@@ -12,7 +13,7 @@ namespace Guetta.App
 
         private PlayingService PlayingService { get; }
         
-        public async Task Join(IVoiceChannel voiceChannel)
+        public async Task Join(DiscordChannel voiceChannel)
         {
             var audioClient = await voiceChannel.ConnectAsync();
             PlayingService.SetAudioClient(audioClient);

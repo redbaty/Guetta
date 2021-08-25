@@ -5,7 +5,8 @@
     </PropertyGroup>
     
     <ItemGroup>
-        <PackageReference Include="Discord.Net" Version="2.4.0" />
+        <PackageReference Include="DSharpPlus" Version="4.1.0" />
+        <PackageReference Include="DSharpPlus.VoiceNext" Version="4.1.0" />
     </ItemGroup>
 
 </Project>
