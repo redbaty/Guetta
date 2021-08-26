@@ -351,3 +351,5 @@ MigrationBackup/
 
 .idea/
 Guetta/Properties/launchSettings.json
+
+Guetta.Player/Properties/launchSettings.json
