@@ -6,8 +6,7 @@
       "dotnetRunMessages": "true",
       "applicationUrl": "http://localhost:5000",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development",
-        "TOKEN": "ODU0NTMyODkyNDE2MTQ3NTI2.YMlTxg.AkrgdKC47FZvZU8-HTOxbbZDixs"
+        "ASPNETCORE_ENVIRONMENT": "Development"
       }
     }
   }
