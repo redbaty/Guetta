@@ -19,7 +19,7 @@ namespace Guetta.App
 
         private QueueItem CurrentItem { get; set; }
         
-        private VoiceTransmitSink CurrentDiscordStream { get; set; }
+        private VoiceTransmitSink CurrentDiscordSink { get; set; }
         
         private YoutubeDlService YoutubeDlService { get; }
 
@@ -33,7 +33,7 @@ namespace Guetta.App
 
         public Task ChangeVolume(double newVolume)
         {
-            CurrentDiscordStream.VolumeModifier = newVolume;
+            CurrentDiscordSink.VolumeModifier = newVolume;
             return Task.CompletedTask;
         }
         
@@ -46,7 +46,7 @@ namespace Guetta.App
         public async Task Play(QueueItem queueItem, CancellationToken cancellationToken)
         {
             CurrentItem = queueItem;
-            CurrentDiscordStream ??= AudioClient.GetTransmitSink();
+            CurrentDiscordSink ??= AudioClient.GetTransmitSink();
             
             try
             {
@@ -59,12 +59,11 @@ namespace Guetta.App
                         CurrentItem.VideoInformation.Title, CurrentItem.User.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
                 
-                await YoutubeDlService.SendToAudioSink(CurrentItem.YoutubeDlInput, CurrentDiscordStream, cancellationToken);
+                await YoutubeDlService.SendToAudioSink(CurrentItem.YoutubeDlInput, CurrentDiscordSink, cancellationToken);
             }
             finally
             {
-                await CurrentDiscordStream.FlushAsync(CancellationToken.None);
-                CurrentDiscordStream = null;
+                await CurrentDiscordSink.FlushAsync(CancellationToken.None);
                 CurrentYoutubeAudioStream = null;
                 CurrentFfmpegAudioStream = null;
                 CurrentItem = null;
