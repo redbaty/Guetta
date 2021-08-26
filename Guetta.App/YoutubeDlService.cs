@@ -54,7 +54,8 @@ namespace Guetta.App
                 Title = rootElement.GetProperty("title").GetString()
             };
         
-        public async Task SendToAudioSink(string input, VoiceTransmitSink currentDiscordStream, CancellationToken cancellationToken)
+        public async Task SendToAudioSink(string input, VoiceTransmitSink currentDiscordStream,
+            CancellationToken cancellationToken, TaskCompletionSource<bool> playbackStart)
         {
             var youtubeDlArguments = new[]
             {
@@ -84,7 +85,7 @@ namespace Guetta.App
 
             Logger.LogDebug("{@Program} arguments: {@Arguments}", "ffmpeg", ffmpegArguments);
 
-            await using var stream = new VoiceTransmitSinkStream(currentDiscordStream);
+            await using var stream = new VoiceTransmitSinkStream(currentDiscordStream, playbackStart);
             
             var ffmpegCommand = Cli.Wrap("ffmpeg")
                 .WithStandardInputPipe(PipeSource.FromCommand(youtubeDlCommand))

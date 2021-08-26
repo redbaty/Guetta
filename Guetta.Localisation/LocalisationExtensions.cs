@@ -11,7 +11,7 @@ namespace Guetta.Localisation
         public static async Task ValidateAndConfigureLocalisation(this IServiceProvider serviceProvider)
         {
             using var serviceScope = serviceProvider.CreateScope();
-            var localisationContext = serviceProvider.GetService<LocalisationContext>();
+            var localisationContext = serviceScope.ServiceProvider.GetService<LocalisationContext>();
 
             await localisationContext!.Database.EnsureCreatedAsync();
             await LoadEntries(localisationContext);

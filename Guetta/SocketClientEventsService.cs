@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.EventArgs;
 using Guetta.Abstractions;
+using Guetta.App;
 using Guetta.App.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Guetta.App
+namespace Guetta
 {
     public class SocketClientEventsService
     {

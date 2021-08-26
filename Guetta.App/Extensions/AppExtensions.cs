@@ -6,11 +6,7 @@ namespace Guetta.App.Extensions
     {
         public static void AddGuettaServices(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<SocketClientEventsService>();
-            serviceCollection.AddSingleton<CommandSolverService>();
-            serviceCollection.AddSingleton<QueueService>();
-            serviceCollection.AddSingleton<PlayingService>();
-            serviceCollection.AddSingleton<AudioChannelService>();
+        
             serviceCollection.AddTransient<YoutubeDlService>();
         }
     }

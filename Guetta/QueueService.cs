@@ -1,20 +1,18 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Guetta.Abstractions;
-using Guetta.Localisation;
 using Microsoft.Extensions.Logging;
 
-namespace Guetta.App
+namespace Guetta
 {
     public class QueueService
     {
-        public QueueService(ILogger<QueueService> logger,
-            LocalisationService localisationService, PlayingService playingService)
+        public QueueService(ILogger<QueueService> logger, PlayerProxy playerProxy)
         {
             Logger = logger;
-            LocalisationService = localisationService;
-            PlayingService = playingService;
+            PlayerProxy = playerProxy;
         }
 
         private Queue<QueueItem> Queue { get; } = new();
@@ -23,13 +21,9 @@ namespace Guetta.App
 
         private Task LoopQueue { get; set; }
         
-        private PlayingService PlayingService { get; }
-
-        private CancellationTokenSource CancellationTokenSource { get; set; }
+        private PlayerProxy PlayerProxy { get; }
 
         private QueueItem CurrentItem { get; set; }
-
-        private LocalisationService LocalisationService { get; }
 
         private void ReOrderQueue()
         {
@@ -57,13 +51,17 @@ namespace Guetta.App
 
                     Logger.LogInformation("Playing {@Url} requested by {@User}", queueItem.YoutubeDlInput,
                         queueItem.User.Username);
-
-                    CancellationTokenSource?.Dispose();
-                    CancellationTokenSource = new CancellationTokenSource();
+                    
 
                     queueItem.Playing = true;
-                    await PlayingService.Play(queueItem, CancellationTokenSource.Token)
+                    await PlayerProxy.Play(queueItem.TextChannel.Id, queueItem.VoiceChannel.Id, queueItem.User.Mention, queueItem.YoutubeDlInput, queueItem.VideoInformation)
                         .ContinueWith(t => Task.CompletedTask);
+                    
+                    while (await PlayerProxy.Playing(queueItem.VoiceChannel.Id))
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(1));
+                    }
+                    
                     queueItem.Playing = false;
                 }
 
@@ -80,12 +78,12 @@ namespace Guetta.App
 
         public bool CanPlay()
         {
-            return PlayingService.AudioClient is { };
+            return  true;
         }
 
         public bool CanSkip()
         {
-            return CanPlay() && CancellationTokenSource != null;
+            return true;
         }
 
         public void Enqueue(QueueItem item)
@@ -95,13 +93,9 @@ namespace Guetta.App
             StartQueueLoop();
         }
 
-        public void Skip()
+        public async Task Skip(ulong channelId)
         {
-            if (CancellationTokenSource != null)
-            {
-                CancellationTokenSource.Cancel();
-                CancellationTokenSource = null;
-            }
+            await PlayerProxy.Skip(channelId);
         }
     }
 }

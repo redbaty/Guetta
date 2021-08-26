@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Guetta.Abstractions;
-using Guetta.App;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
 
@@ -28,8 +27,16 @@ namespace Guetta.Commands
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
                 return;
             }
+
+            if (message.Author is not DiscordMember discordMember)
+            {
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "NotInChannel", message.Author.Mention)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                return;
+            }
             
-            QueueService.Skip();
+            await QueueService.Skip(discordMember.VoiceState.Channel.Id);
             await LocalisationService.SendMessageAsync(message.Channel, "SongSkipped", message.Author.Mention)
                 .DeleteMessageAfter(TimeSpan.FromSeconds(15));
         }

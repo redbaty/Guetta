@@ -12,19 +12,16 @@ namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(QueueService queueService, AudioChannelService audioChannelService,
+        public PlayChannelCommand(QueueService queueService,
             YoutubeDlService youtubeDlService, LocalisationService localisationService)
         {
             QueueService = queueService;
-            AudioChannelService = audioChannelService;
             YoutubeDlService = youtubeDlService;
             LocalisationService = localisationService;
         }
 
         private QueueService QueueService { get; }
-
-        private AudioChannelService AudioChannelService { get; }
-
+        
         private YoutubeDlService YoutubeDlService { get; }
 
         private LocalisationService LocalisationService { get; }
@@ -39,19 +36,12 @@ namespace Guetta.Commands
                 return;
             }
 
-            if (!QueueService.CanPlay())
+            if (message.Author is not DiscordMember discordMember)
             {
-                if (message.Author is DiscordMember { VoiceState: { Channel: { } } } discordMember)
-                {
-                    await AudioChannelService.Join(discordMember.VoiceState.Channel);
-                }
-                else
-                {
-                    await LocalisationService
-                        .SendMessageAsync(message.Channel, "NotInChannel", message.Author.Mention)
-                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
-                    return;
-                }
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "NotInChannel", message.Author.Mention)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                return;
             }
 
             await message.Channel.TriggerTypingAsync();
@@ -77,7 +67,8 @@ namespace Guetta.Commands
             QueueService.Enqueue(new QueueItem
             {
                 User = message.Author,
-                Channel = message.Channel,
+                TextChannel = message.Channel,
+                VoiceChannel = discordMember.VoiceState.Channel,
                 YoutubeDlInput = input,
                 VideoInformation = videoInformation
             });
