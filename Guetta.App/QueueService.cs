@@ -62,7 +62,8 @@ namespace Guetta.App
                     CancellationTokenSource = new CancellationTokenSource();
 
                     queueItem.Playing = true;
-                    await PlayingService.Play(queueItem, CancellationTokenSource.Token);
+                    await PlayingService.Play(queueItem, CancellationTokenSource.Token)
+                        .ContinueWith(t => Task.CompletedTask);
                     queueItem.Playing = false;
                 }
 
