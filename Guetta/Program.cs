@@ -39,6 +39,7 @@ namespace Guetta
             serviceCollection.AddGuettaServices();
             serviceCollection.AddGuettaCommands();
             serviceCollection.AddGuettaLocalisation();
+            serviceCollection.WithPrefix("!");
             serviceCollection.AddLogging(builder => builder.AddSerilog());
             
             var serviceProvider = serviceCollection.BuildServiceProvider();
