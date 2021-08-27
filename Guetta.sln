@@ -8,11 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.App", "Guetta.App\Gu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.Localisation", "Guetta.Localisation\Guetta.Localisation.csproj", "{1AA857D3-FC4F-4C65-BA50-F8307C83CEB8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.Http", "Guetta.Http\Guetta.Http.csproj", "{D9E10B25-C4BE-4C9F-9A3A-517A483D5614}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.Player", "Guetta.Player\Guetta.Player.csproj", "{9E14F888-BD23-445F-A8AC-12D05167AB0E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.Player.Abstractions", "Guetta.Player.Abstractions\Guetta.Player.Abstractions.csproj", "{0AAF011C-736A-431A-A92D-C0A6A0B4F3DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,17 +32,9 @@ Global
 		{1AA857D3-FC4F-4C65-BA50-F8307C83CEB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AA857D3-FC4F-4C65-BA50-F8307C83CEB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AA857D3-FC4F-4C65-BA50-F8307C83CEB8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D9E10B25-C4BE-4C9F-9A3A-517A483D5614}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D9E10B25-C4BE-4C9F-9A3A-517A483D5614}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D9E10B25-C4BE-4C9F-9A3A-517A483D5614}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D9E10B25-C4BE-4C9F-9A3A-517A483D5614}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9E14F888-BD23-445F-A8AC-12D05167AB0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9E14F888-BD23-445F-A8AC-12D05167AB0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E14F888-BD23-445F-A8AC-12D05167AB0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E14F888-BD23-445F-A8AC-12D05167AB0E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0AAF011C-736A-431A-A92D-C0A6A0B4F3DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0AAF011C-736A-431A-A92D-C0A6A0B4F3DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0AAF011C-736A-431A-A92D-C0A6A0B4F3DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0AAF011C-736A-431A-A92D-C0A6A0B4F3DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -2,9 +2,10 @@ using System;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.VoiceNext;
+using Guetta.App;
+using Guetta.App.Exceptions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
-using Guetta.Player.Exceptions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -46,7 +47,7 @@ namespace Guetta.Player
             await host.RunAsync();
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
+        private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
     }

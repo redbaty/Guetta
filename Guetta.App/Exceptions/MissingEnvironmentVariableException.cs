@@ -1,8 +1,8 @@
 using System;
 
-namespace Guetta.Exceptions
+namespace Guetta.App.Exceptions
 {
-    internal sealed class MissingEnvironmentVariableException : Exception
+    public sealed class MissingEnvironmentVariableException : Exception
     {
         public MissingEnvironmentVariableException(string variable) : base($"Environment variable '{variable}' was not found.")
         {

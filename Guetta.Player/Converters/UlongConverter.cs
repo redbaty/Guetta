@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Guetta.Player
+namespace Guetta.Player.Converters
 {
     public class UlongConverter : JsonConverter<ulong>
     {

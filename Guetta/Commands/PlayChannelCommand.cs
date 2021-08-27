@@ -7,6 +7,7 @@ using Guetta.Abstractions;
 using Guetta.App;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
+using Guetta.Services;
 
 namespace Guetta.Commands
 {
@@ -49,14 +50,7 @@ namespace Guetta.Commands
             string input;
 
 
-            if (Uri.TryCreate(url, UriKind.Absolute, out _))
-            {
-                input = url;
-            }
-            else
-            {
-                input = $"ytsearch:{message.Content}";
-            }
+            input = Uri.TryCreate(url, UriKind.Absolute, out _) ? url : $"ytsearch:{message.Content}";
 
             var videoInformation = await YoutubeDlService.GetVideoInformation(input, CancellationToken.None);
 

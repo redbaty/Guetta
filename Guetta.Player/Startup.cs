@@ -1,15 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Guetta.App.Extensions;
+using Guetta.Player.Requests;
+using Guetta.Player.Services;
+using Guetta.Player.Validators;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Serilog;
 
@@ -19,14 +17,17 @@ namespace Guetta.Player
     {
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            services.AddControllers()
+                .AddFluentValidation();
             services.AddLogging(o => o.AddSerilog());
-            services.AddSingleton<PlayingService>();
+            services.AddScoped<PlayingService>();
             services.AddSingleton<PlayingServiceTokens>();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "Guetta.Player", Version = "v1" });
             });
+            services.AddTransient<IValidator<PlayRequest>, PlayRequestValidator>();
+            services.AddRedisConnection();
         }
         
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

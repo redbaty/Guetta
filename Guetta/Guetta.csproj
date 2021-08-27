@@ -17,7 +17,6 @@
     <ItemGroup>
       <ProjectReference Include="..\Guetta.App\Guetta.App.csproj" />
       <ProjectReference Include="..\Guetta.Localisation\Guetta.Localisation.csproj" />
-      <ProjectReference Include="..\Guetta.Player.Abstractions\Guetta.Player.Abstractions.csproj" />
     </ItemGroup>
 
 </Project>

@@ -9,7 +9,7 @@ using Guetta.App.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Guetta
+namespace Guetta.Services
 {
     public class SocketClientEventsService
     {

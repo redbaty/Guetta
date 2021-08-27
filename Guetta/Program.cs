@@ -3,10 +3,11 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.VoiceNext;
 using Guetta.App;
+using Guetta.App.Exceptions;
 using Guetta.App.Extensions;
 using Guetta.Commands.Extensions;
-using Guetta.Exceptions;
 using Guetta.Localisation;
+using Guetta.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Extensions.Logging;
@@ -44,7 +45,8 @@ namespace Guetta
             serviceCollection.AddSingleton<QueueService>();
             serviceCollection.WithPrefix("!");
             serviceCollection.AddLogging(builder => builder.AddSerilog());
-            serviceCollection.AddHttpClient<PlayerProxy>(c =>
+            serviceCollection.AddRedisConnection();
+            serviceCollection.AddHttpClient<PlayerProxyService>(c =>
             {
                 c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("PLAYER_PROXY_URL") ?? throw new MissingEnvironmentVariableException("PLAYER_PROXY_URL"));
             });

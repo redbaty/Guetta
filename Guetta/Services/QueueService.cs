@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using Guetta.Abstractions;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 
-namespace Guetta
+namespace Guetta.Services
 {
     public class QueueService
     {
-        public QueueService(ILogger<QueueService> logger, PlayerProxy playerProxy)
+        public QueueService(ILogger<QueueService> logger, PlayerProxyService playerProxyService, ISubscriber subscriber)
         {
             Logger = logger;
-            PlayerProxy = playerProxy;
+            PlayerProxyService = playerProxyService;
+            Subscriber = subscriber;
         }
 
         private Queue<QueueItem> Queue { get; } = new();
@@ -21,9 +22,13 @@ namespace Guetta
 
         private Task LoopQueue { get; set; }
         
-        private PlayerProxy PlayerProxy { get; }
+        private PlayerProxyService PlayerProxyService { get; }
+        
+        private ISubscriber Subscriber { get; }
 
         private QueueItem CurrentItem { get; set; }
+        
+        private TaskCompletionSource<string> WaitPlay { get; set; }
 
         private void ReOrderQueue()
         {
@@ -54,15 +59,24 @@ namespace Guetta
                     
 
                     queueItem.Playing = true;
-                    await PlayerProxy.Play(queueItem.TextChannel.Id, queueItem.VoiceChannel.Id, queueItem.User.Mention, queueItem.YoutubeDlInput, queueItem.VideoInformation)
-                        .ContinueWith(t => Task.CompletedTask);
-                    
-                    while (await PlayerProxy.Playing(queueItem.VoiceChannel.Id))
+
+                    WaitPlay = new TaskCompletionSource<string>();
+
+                    var id = await PlayerProxyService.Play(queueItem.TextChannel.Id, queueItem.VoiceChannel.Id, queueItem.User.Mention, queueItem.YoutubeDlInput, queueItem.VideoInformation)
+                        .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : null);
+
+                    if (id != null)
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(1));
+                        var channel = $"{id}:ended";
+                        await Subscriber.SubscribeAsync(channel,
+                            (_, value) => { WaitPlay.SetResult(value); });
+
+                        var waitedEvent = await WaitPlay.Task;
+                        await Subscriber.UnsubscribeAsync(channel);
                     }
-                    
+
                     queueItem.Playing = false;
+                    CurrentItem = null;
                 }
 
                 LoopQueue = null;
@@ -95,7 +109,8 @@ namespace Guetta
 
         public async Task Skip(ulong channelId)
         {
-            await PlayerProxy.Skip(channelId);
+            await PlayerProxyService.Skip(channelId);
+            StartQueueLoop();
         }
     }
 }

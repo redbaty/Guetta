@@ -3,7 +3,7 @@ using Guetta.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Guetta.App
+namespace Guetta.Services
 {
     public class CommandSolverService
     {
