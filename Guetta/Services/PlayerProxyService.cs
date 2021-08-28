@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Guetta.Abstractions;
@@ -14,14 +14,13 @@ namespace Guetta.Services
 
         private HttpClient HttpClient { get; }
 
-        public async Task<string> Play(ulong textChannelId, ulong voiceChannelId, string userMention, string input, VideoInformation videoInformation)
+        public async Task<string> Play(ulong textChannelId, ulong voiceChannelId, string userMention, VideoInformation videoInformation)
         {
             var request = await HttpClient.PostAsJsonAsync("play", new
             {
                 textChannelId = textChannelId.ToString(),
                 voiceChannelId = voiceChannelId.ToString(),
                 requestedByUser = userMention,
-                input,
                 videoInformation
             });
 

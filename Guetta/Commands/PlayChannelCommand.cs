@@ -63,7 +63,6 @@ namespace Guetta.Commands
                 User = message.Author,
                 TextChannel = message.Channel,
                 VoiceChannel = discordMember.VoiceState.Channel,
-                YoutubeDlInput = input,
                 VideoInformation = videoInformation
             });
         }

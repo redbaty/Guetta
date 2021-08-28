@@ -15,16 +15,11 @@ namespace Guetta.Player.Requests
         public ulong VoiceChannelId { get; set; }
 
         public string RequestedByUser { get; set; }
-        
-        public string Input { get; set; }
-        
+
         public VideoInformation VideoInformation { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (string.IsNullOrEmpty(Input))
-                yield return new ValidationResult("Input can't be null or empty", new[] { nameof(Input) });
-            
             if(VoiceChannelId == default)
                 yield return new ValidationResult("VoiceChannelId can't be 0", new[] { nameof(VoiceChannelId) });
             

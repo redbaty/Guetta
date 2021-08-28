@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,7 +107,7 @@ namespace Guetta.Player.Services
 
             var playbackStart = new TaskCompletionSource<bool>();
             
-            _ = YoutubeDlService.SendToAudioSink(request.Input, voiceConnection.Sink, cancellationToken, playbackStart)
+            _ = YoutubeDlService.SendToAudioSink(request.VideoInformation.Url, voiceConnection.Sink, cancellationToken)
                 .ContinueWith(
                     async t =>
                     {
