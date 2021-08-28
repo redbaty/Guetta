@@ -55,7 +55,7 @@ namespace Guetta.Services
                 volume
             });
 
-            return await request.Content.ReadFromJsonAsync<bool>();
+            return request.IsSuccessStatusCode;
         }
     }
 }
