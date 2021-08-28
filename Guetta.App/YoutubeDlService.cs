@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -55,7 +56,7 @@ namespace Guetta.App
             };
         
         public async Task SendToAudioSink(string input, VoiceTransmitSink currentDiscordStream,
-            CancellationToken cancellationToken, TaskCompletionSource<bool> playbackStart)
+            CancellationToken cancellationToken)
         {
             var youtubeDlArguments = new[]
             {
@@ -85,8 +86,8 @@ namespace Guetta.App
 
             Logger.LogDebug("{@Program} arguments: {@Arguments}", "ffmpeg", ffmpegArguments);
 
-            await using var stream = new VoiceTransmitSinkStream(currentDiscordStream, playbackStart);
-            
+            await using var stream = new VoiceTransmitSinkStream(currentDiscordStream);
+
             var ffmpegCommand = Cli.Wrap("ffmpeg")
                 .WithStandardInputPipe(PipeSource.FromCommand(youtubeDlCommand))
                 .WithStandardOutputPipe(PipeTarget.ToStream(stream, false))

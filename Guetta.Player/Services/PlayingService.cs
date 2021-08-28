@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -104,8 +104,7 @@ namespace Guetta.Player.Services
             await LocalisationService.SendMessageAsync(textChannel, "SongPlaying",
                     request.VideoInformation.Title, request.RequestedByUser)
                 .DeleteMessageAfter(TimeSpan.FromSeconds(15));
-
-            var playbackStart = new TaskCompletionSource<bool>();
+            
             
             _ = YoutubeDlService.SendToAudioSink(request.VideoInformation.Url, voiceConnection.Sink, cancellationToken)
                 .ContinueWith(
@@ -117,8 +116,7 @@ namespace Guetta.Player.Services
                         CurrentlyPlaying.Remove(request.VoiceChannelId);
                         await Subscriber.PublishAsync($"{currentlyPlaying.Id}:ended", t.IsCompletedSuccessfully);
                     }, CancellationToken.None);
-
-            await playbackStart.Task;
+            
             return currentlyPlaying.Id;
         }
     }

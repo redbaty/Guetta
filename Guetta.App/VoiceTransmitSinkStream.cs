@@ -8,15 +8,12 @@ namespace Guetta.App
 {
     public class VoiceTransmitSinkStream : Stream
     {
-        public VoiceTransmitSinkStream(VoiceTransmitSink sink, TaskCompletionSource<bool> playbackStarted)
+        public VoiceTransmitSinkStream(VoiceTransmitSink sink)
         {
             Sink = sink;
-            PlaybackStarted = playbackStarted;
         }
 
         private VoiceTransmitSink Sink { get; }
-        
-        private TaskCompletionSource<bool> PlaybackStarted { get; set; }
 
         public override bool CanRead => false;
         public override bool CanSeek => false;
@@ -55,12 +52,6 @@ namespace Guetta.App
 
         public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
-            if (PlaybackStarted != null)
-            {
-                PlaybackStarted.SetResult(true);
-                PlaybackStarted = null;
-            }
-            
             await Sink.WriteAsync(buffer.AsMemory(offset, count), cancellationToken);
         }
     }
