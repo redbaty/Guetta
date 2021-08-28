@@ -54,7 +54,7 @@ namespace Guetta.Services
                     queueItem.CurrentQueueIndex = 0;
                     ReOrderQueue();
 
-                    Logger.LogInformation("Playing {@Url} requested by {@User}", queueItem.YoutubeDlInput,
+                    Logger.LogInformation("Playing {@Url} requested by {@User}", queueItem.VideoInformation.Url,
                         queueItem.User.Username);
                     
 
@@ -62,7 +62,7 @@ namespace Guetta.Services
 
                     WaitPlay = new TaskCompletionSource<string>();
 
-                    var id = await PlayerProxyService.Play(queueItem.TextChannel.Id, queueItem.VoiceChannel.Id, queueItem.User.Mention, queueItem.YoutubeDlInput, queueItem.VideoInformation)
+                    var id = await PlayerProxyService.Play(queueItem.TextChannel.Id, queueItem.VoiceChannel.Id, queueItem.User.Mention, queueItem.VideoInformation)
                         .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : null);
 
                     if (id != null)
@@ -95,9 +95,9 @@ namespace Guetta.Services
             return  true;
         }
 
-        public bool CanSkip()
+        public Task<bool> CanSkip(ulong channel)
         {
-            return true;
+            return PlayerProxyService.Playing(channel);
         }
 
         public void Enqueue(QueueItem item)
