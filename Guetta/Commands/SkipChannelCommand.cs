@@ -19,16 +19,9 @@ namespace Guetta.Commands
         private QueueService QueueService { get; }
         
         private LocalisationService LocalisationService { get; }
-        
+
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
-            if (!QueueService.CanSkip())
-            {
-                await LocalisationService.SendMessageAsync(message.Channel, "CantSkip", message.Author.Mention)
-                    .DeleteMessageAfter(TimeSpan.FromSeconds(15));
-                return;
-            }
-
             if (message.Author is not DiscordMember discordMember)
             {
                 await LocalisationService
@@ -37,6 +30,13 @@ namespace Guetta.Commands
                 return;
             }
             
+            if (!await QueueService.CanSkip(discordMember.VoiceState.Channel.Id))
+            {
+                await LocalisationService.SendMessageAsync(message.Channel, "CantSkip", message.Author.Mention)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(15));
+                return;
+            }
+
             await QueueService.Skip(discordMember.VoiceState.Channel.Id);
             await LocalisationService.SendMessageAsync(message.Channel, "SongSkipped", message.Author.Mention)
                 .DeleteMessageAfter(TimeSpan.FromSeconds(15));
