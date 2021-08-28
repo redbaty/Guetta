@@ -1,0 +1,11 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: player-queue
+  namespace: guetta
+spec:
+  name: player-queue
+  autoDelete: false
+  durable: true
+  rabbitmqClusterReference:
+    name: example-rabbit

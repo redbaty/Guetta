@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guetta
+  namespace: guetta
+spec:
+  selector:
+    matchLabels:
+      app: guetta
+  template:
+    metadata:
+      labels:
+        app: guetta
+    spec:
+      containers:
+      - name: guetta
+        image: redbaty/guetta:latest
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: guetta-envs
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guetta-envs
+  namespace: guetta 
+data:
+  TOKEN: "ODU0NTMyODkyNDE2MTQ3NTI2.YMlTxg.ANgMnCJFbUZgRmhVeTvccWhwfgg"
+  PLAYER_PROXY_URL: "http://guetta-player-service.guetta"
+  REDIS: "redis-service.guetta"
