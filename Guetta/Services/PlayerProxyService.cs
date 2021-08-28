@@ -24,7 +24,7 @@ namespace Guetta.Services
                 videoInformation
             });
 
-            return await request.Content.ReadFromJsonAsync<string>();
+            return request.IsSuccessStatusCode ? await request.Content.ReadAsStringAsync() : null;
         }
         
         public async Task<bool> Skip(ulong voiceChannelId)
