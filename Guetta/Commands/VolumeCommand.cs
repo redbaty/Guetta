@@ -34,7 +34,7 @@ namespace Guetta.Commands
             {
                 await message.Channel.TriggerTypingAsync();
                 var mensagem = await PlayerProxyService.SetVolume(discordMember.VoiceState.Channel.Id, volume / 100f)
-                    .ContinueWith(t => t.IsCompletedSuccessfully ? "Volume alterado queridão" : "Deu ruim pra alterar o volume");
+                    .ContinueWith(t => t.IsCompletedSuccessfully && t.Result ? "Volume alterado queridão" : "Deu ruim pra alterar o volume");
                 await message.Channel.SendMessageAsync(mensagem)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
