@@ -1,6 +1,5 @@
-podman build -f ./Guetta/Dockerfile -t redbaty/homelab:guetta-arm . &
-podman build -f ./Guetta.Player/Dockerfile -t redbaty/homelab:guetta-player-arm . &
-wait
+podman build -f ./Guetta/Dockerfile -t redbaty/guetta:latest .
+podman build -f ./Guetta.Player/Dockerfile -t redbaty/guetta:player-latest .
 
-podman push redbaty/homelab:guetta-arm
-podman push redbaty/homelab:guetta-player-arm
+podman push redbaty/guetta:latest
+podman push redbaty/guetta:player-latest

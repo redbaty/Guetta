@@ -1,6 +1,5 @@
-docker build -f ./Guetta/Dockerfile -t redbaty/homelab:guetta . &
-docker build -f ./Guetta.Player/Dockerfile -t redbaty/homelab:guetta-player . &
-wait
+docker build -f ./Guetta/Dockerfile -t redbaty/guetta:latest .
+docker build -f ./Guetta.Player/Dockerfile -t redbaty/guetta:player-latest .
 
-docker push redbaty/homelab:guetta
-docker push redbaty/homelab:guetta-player
+docker push redbaty/guetta:latest
+docker push redbaty/guetta:player-latest
