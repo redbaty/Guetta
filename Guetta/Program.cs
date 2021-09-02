@@ -30,7 +30,8 @@ namespace Guetta
             {
                 Token =  Environment.GetEnvironmentVariable("TOKEN") ?? throw new MissingEnvironmentVariableException("TOKEN"),
                 TokenType = TokenType.Bot,
-                LoggerFactory = new SerilogLoggerFactory()
+                LoggerFactory = new SerilogLoggerFactory(),
+                Intents = DiscordIntents.Guilds | DiscordIntents.GuildMessages | DiscordIntents.GuildVoiceStates
             });
             discordSocketClient.UseVoiceNext();
 
