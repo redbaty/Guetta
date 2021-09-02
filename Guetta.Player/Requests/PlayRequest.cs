@@ -15,6 +15,8 @@ namespace Guetta.Player.Requests
         public ulong VoiceChannelId { get; set; }
 
         public string RequestedByUser { get; set; }
+        
+        public double InitialVolume { get; set; }
 
         public VideoInformation VideoInformation { get; set; }
 

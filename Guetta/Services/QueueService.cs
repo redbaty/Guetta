@@ -9,11 +9,13 @@ namespace Guetta.Services
 {
     public class QueueService
     {
-        public QueueService(ILogger<QueueService> logger, PlayerProxyService playerProxyService, ISubscriber subscriber)
+        public QueueService(ILogger<QueueService> logger, PlayerProxyService playerProxyService, ISubscriber subscriber,
+            IDatabase database)
         {
             Logger = logger;
             PlayerProxyService = playerProxyService;
             Subscriber = subscriber;
+            Database = database;
         }
 
         private Queue<QueueItem> Queue { get; } = new();
@@ -21,13 +23,15 @@ namespace Guetta.Services
         private ILogger<QueueService> Logger { get; }
 
         private Task LoopQueue { get; set; }
-        
+
         private PlayerProxyService PlayerProxyService { get; }
-        
+
         private ISubscriber Subscriber { get; }
 
+        private IDatabase Database { get; }
+
         private QueueItem CurrentItem { get; set; }
-        
+
         private TaskCompletionSource<string> WaitPlay { get; set; }
 
         private void ReOrderQueue()
@@ -56,13 +60,17 @@ namespace Guetta.Services
 
                     Logger.LogInformation("Playing {@Url} requested by {@User}", queueItem.VideoInformation.Url,
                         queueItem.User.Username);
-                    
+
 
                     queueItem.Playing = true;
 
                     WaitPlay = new TaskCompletionSource<string>();
 
-                    var id = await PlayerProxyService.Play(queueItem.TextChannel.Id, queueItem.VoiceChannel.Id, queueItem.User.Mention, queueItem.VideoInformation)
+                    var channelVolume = await Database.HashGetAsync(queueItem.VoiceChannel.Id.ToString(), "volume");
+
+                    var id = await PlayerProxyService
+                        .Play(queueItem.TextChannel.Id, queueItem.VoiceChannel.Id, queueItem.User.Mention,
+                            queueItem.VideoInformation, channelVolume.HasValue ? (double)channelVolume : 1)
                         .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : null);
 
                     if (id != null)
@@ -71,7 +79,7 @@ namespace Guetta.Services
                         await Subscriber.SubscribeAsync(channel,
                             (_, value) => { WaitPlay.SetResult(value); });
 
-                        var waitedEvent = await WaitPlay.Task;
+                        await WaitPlay.Task;
                         await Subscriber.UnsubscribeAsync(channel);
                     }
 
@@ -92,7 +100,7 @@ namespace Guetta.Services
 
         public bool CanPlay()
         {
-            return  true;
+            return true;
         }
 
         public Task<bool> CanSkip(ulong channel)
