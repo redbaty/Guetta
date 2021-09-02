@@ -36,6 +36,6 @@ metadata:
   namespace: guetta 
 data:
   ASPNETCORE_ENVIRONMENT: "Development"
-  TOKEN: "ODU0NTMyODkyNDE2MTQ3NTI2.YMlTxg.ANgMnCJFbUZgRmhVeTvccWhwfgg"
+  TOKEN: "<TOKEN>"
   REDIS_HOST: "redis-service.guetta"
   REDIS_PORT: "6379"
