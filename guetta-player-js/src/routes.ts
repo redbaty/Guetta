@@ -1,7 +1,7 @@
 import {FastifyInstance} from "fastify";
 import {IChannelRequest} from "./IChannelRequest";
 import {AudioResource, createAudioPlayer, entersState, joinVoiceChannel, VoiceConnectionStatus} from "@discordjs/voice";
-import {Track} from "./track";
+import {Track} from "./track.js";
 import {IVolumeRequest} from "./IVolumeRequest";
 import {IPlayRequest} from "./IPlayRequest";
 import {Client, VoiceChannel} from "discord.js";
