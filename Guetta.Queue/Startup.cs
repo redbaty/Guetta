@@ -8,7 +8,7 @@ using Guetta.Queue.Extensions;
 using Guetta.Queue.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,6 +33,7 @@ namespace Guetta.Queue
             services.AddScoped<QueueService>();
             services.AddScoped<QueueStatusService>();
             services.AddSingleton<PlayerEventSubscriberService>();
+            services.Configure<RouteOptions>(c => c.LowercaseUrls = true);
         }
         
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
