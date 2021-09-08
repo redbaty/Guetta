@@ -14,6 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Guetta.App.Redis\Guetta.App.Redis.csproj" />
       <ProjectReference Include="..\Guetta.App\Guetta.App.csproj" />
     </ItemGroup>
 

@@ -13,7 +13,8 @@ namespace Guetta.Services
 {
     public class SocketClientEventsService
     {
-        public SocketClientEventsService(CommandSolverService commandSolverService, ILogger<SocketClientEventsService> logger, IOptions<CommandOptions> commandOptions)
+        public SocketClientEventsService(CommandSolverService commandSolverService,
+            ILogger<SocketClientEventsService> logger, IOptions<CommandOptions> commandOptions)
         {
             CommandSolverService = commandSolverService;
             Logger = logger;
@@ -23,7 +24,7 @@ namespace Guetta.Services
         private CommandSolverService CommandSolverService { get; }
 
         private ILogger<SocketClientEventsService> Logger { get; }
-        
+
         private IOptions<CommandOptions> CommandOptions { get; }
 
         private DiscordClient Client { get; set; }
@@ -57,10 +58,19 @@ namespace Guetta.Services
             var message = messageCreateEventArgs.Message;
             if (message.Content.StartsWith(CommandOptions.Value.Prefix))
             {
-                message.DeleteMessageAfter(TimeSpan.FromSeconds(10));
+                _ = message.DeleteMessageAfter(TimeSpan.FromSeconds(10));
                 var commandArguments = message.Content[1..].Split(" ");
                 var discordCommand = CommandSolverService.GetCommand(commandArguments.First().ToLower());
-                discordCommand.ExecuteAsync(message, commandArguments.Skip(1).ToArray());
+
+                if (discordCommand != null)
+                {
+                    _ = message.Channel.TriggerTypingAsync();
+                    _ = discordCommand.ExecuteAsync(message, commandArguments.Skip(1).ToArray());
+                }
+                else
+                {
+                    _ = message.Channel.SendMessageAsync("Invalid command").DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                }
             }
 
             return Task.CompletedTask;

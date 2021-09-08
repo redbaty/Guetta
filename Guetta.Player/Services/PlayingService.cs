@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.VoiceNext;
 using Guetta.App;
-using Guetta.App.Extensions;
-using Guetta.Localisation;
 using Guetta.Player.Requests;
 using StackExchange.Redis;
 
@@ -14,12 +11,11 @@ namespace Guetta.Player.Services
 {
     public class PlayingService
     {
-        public PlayingService(YoutubeDlService youtubeDlService, LocalisationService localisationService,
+        public PlayingService(YoutubeDlService youtubeDlService,
             DiscordClient discordClient, PlayingServiceTokens playingServiceTokens, ISubscriber subscriber,
             IDatabase database)
         {
             YoutubeDlService = youtubeDlService;
-            LocalisationService = localisationService;
             DiscordClient = discordClient;
             PlayingServiceTokens = playingServiceTokens;
             Subscriber = subscriber;
@@ -27,8 +23,6 @@ namespace Guetta.Player.Services
         }
 
         private YoutubeDlService YoutubeDlService { get; }
-
-        private LocalisationService LocalisationService { get; }
 
         private PlayingServiceTokens PlayingServiceTokens { get; }
 
@@ -60,7 +54,6 @@ namespace Guetta.Player.Services
                 return null;
 
             var voiceChannel = await DiscordClient.GetChannelAsync(request.VoiceChannelId);
-            var textChannel = await DiscordClient.GetChannelAsync(request.TextChannelId);
 
             if (!VoiceConnections.ContainsKey(request.VoiceChannelId))
             {
@@ -73,16 +66,8 @@ namespace Guetta.Player.Services
             }
 
             var voiceConnection = VoiceConnections[request.VoiceChannelId];
-            var channelVolume = await Database.HashGetAsync(request.VoiceChannelId.ToString(), "volume");
-
-            if (channelVolume.HasValue)
-            {
-                voiceConnection.Sink.VolumeModifier = (double)channelVolume;
-            }
-            else
-            {
-                await SetVolume(request.VoiceChannelId, voiceConnection.Sink.VolumeModifier);
-            }
+            voiceConnection.Sink.VolumeModifier = request.InitialVolume;
+            await SetVolume(request.VoiceChannelId, voiceConnection.Sink.VolumeModifier);
 
             if (!CurrentlyPlaying.ContainsKey(request.VoiceChannelId))
             {
@@ -95,16 +80,6 @@ namespace Guetta.Player.Services
 
             var currentlyPlaying = CurrentlyPlaying[request.VoiceChannelId];
             var cancellationToken = PlayingServiceTokens.GetCancellationToken(request.VoiceChannelId);
-
-            await LocalisationService.SendMessageAsync(textChannel, "SongDownloading",
-                    request.VideoInformation.Title, request.RequestedByUser)
-                .DeleteMessageAfter(TimeSpan.FromSeconds(15));
-            await textChannel.TriggerTypingAsync();
-
-            await LocalisationService.SendMessageAsync(textChannel, "SongPlaying",
-                    request.VideoInformation.Title, request.RequestedByUser)
-                .DeleteMessageAfter(TimeSpan.FromSeconds(15));
-            
             
             _ = YoutubeDlService.SendToAudioSink(request.VideoInformation.Url, voiceConnection.Sink, cancellationToken)
                 .ContinueWith(

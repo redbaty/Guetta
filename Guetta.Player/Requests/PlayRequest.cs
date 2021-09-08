@@ -2,19 +2,14 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Guetta.Abstractions;
-using Guetta.Player.Converters;
+using Guetta.Abstractions.Converters;
 
 namespace Guetta.Player.Requests
 {
-    public class PlayRequest : IValidatableObject
+    public class PlayRequest : IValidatableObject, IPlayRequest
     {
         [JsonConverter(typeof(UlongConverter))]
-        public ulong TextChannelId { get; set; }
-        
-        [JsonConverter(typeof(UlongConverter))]
         public ulong VoiceChannelId { get; set; }
-
-        public string RequestedByUser { get; set; }
         
         public double InitialVolume { get; set; }
 
@@ -24,10 +19,7 @@ namespace Guetta.Player.Requests
         {
             if(VoiceChannelId == default)
                 yield return new ValidationResult("VoiceChannelId can't be 0", new[] { nameof(VoiceChannelId) });
-            
-            if(TextChannelId == default)
-                yield return new ValidationResult("TextChannelId can't be 0", new[] { nameof(TextChannelId) });
-            
+
             if(VideoInformation == null)
                 yield return new ValidationResult("No Video Information provided", new[] { nameof(VideoInformation) });
         }

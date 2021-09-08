@@ -2,11 +2,14 @@
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.VoiceNext;
+using Guetta.Abstractions.Exceptions;
 using Guetta.App;
-using Guetta.App.Exceptions;
 using Guetta.App.Extensions;
+using Guetta.App.Redis;
 using Guetta.Commands.Extensions;
 using Guetta.Localisation;
+using Guetta.Player.Client;
+using Guetta.Queue.Client;
 using Guetta.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -43,15 +46,12 @@ namespace Guetta
             serviceCollection.AddTransient<YoutubeDlService>();
             serviceCollection.AddGuettaCommands();
             serviceCollection.AddGuettaLocalisation();
-            serviceCollection.AddSingleton<QueueService>();
             serviceCollection.WithPrefix("!");
             serviceCollection.AddLogging(builder => builder.AddSerilog());
             serviceCollection.AddRedisConnection();
-            serviceCollection.AddHttpClient<PlayerProxyService>(c =>
-            {
-                c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("PLAYER_PROXY_URL") ?? throw new MissingEnvironmentVariableException("PLAYER_PROXY_URL"));
-            });
-            
+            serviceCollection.AddPlayerClient();
+            serviceCollection.AddQueueClient();
+
             var serviceProvider = serviceCollection.BuildServiceProvider();
             await serviceProvider.ValidateAndConfigureLocalisation();
 

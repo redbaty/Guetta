@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="RedLock.net" Version="2.3.1" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Guetta.App.Redis\Guetta.App.Redis.csproj" />
+      <ProjectReference Include="..\Guetta.Player.Client\Guetta.Player.Client.csproj" />
+      <ProjectReference Include="..\Guetta.Queue.Abstractions\Guetta.Queue.Abstractions.csproj" />
+    </ItemGroup>
+
+</Project>

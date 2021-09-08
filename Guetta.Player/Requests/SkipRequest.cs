@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using Guetta.Player.Converters;
+using Guetta.Abstractions.Converters;
 
 namespace Guetta.Player.Requests
 {

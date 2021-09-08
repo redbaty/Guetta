@@ -1,12 +1,24 @@
-import {FastifyInstance} from "fastify";
-import {IChannelRequest} from "./IChannelRequest";
-import {AudioResource, createAudioPlayer, entersState, joinVoiceChannel, VoiceConnectionStatus} from "@discordjs/voice";
-import {Track} from "./track.js";
-import {IVolumeRequest} from "./IVolumeRequest";
-import {IPlayRequest} from "./IPlayRequest";
-import {Client, VoiceChannel} from "discord.js";
-import {nanoid} from "nanoid";
-import {Redis} from "ioredis";
+import { FastifyInstance } from "fastify";
+import { IChannelRequest } from "./IChannelRequest";
+import { AudioPlayerStatus, AudioResource, createAudioPlayer, entersState, joinVoiceChannel, VoiceConnectionStatus } from "@discordjs/voice";
+import { Track } from "./track.js";
+import { IVolumeRequest } from "./IVolumeRequest";
+import { IPlayRequest } from "./IPlayRequest";
+import { Client, VoiceChannel } from "discord.js";
+import { nanoid } from "nanoid";
+import { Redis } from "ioredis";
+
+export enum IPlayerEvent {
+    StartedPlaying = 0,
+    EndedPlaying = 1,
+    Disconnected = -1
+}
+
+export interface IPlayerEventMessage {
+    id: string;
+    channel: string;
+    event: IPlayerEvent;
+}
 
 export function setupSkipRoute(server: FastifyInstance, playingMap: Map<String, AudioResource<Track>>) {
     server.post<{ Body: IChannelRequest }>('/skip', async (request, reply) => {
@@ -71,8 +83,6 @@ export function setupPlayRoute(server: FastifyInstance, playingMap: Map<String, 
                 },
                 onFinish() {
                     console.log('finished')
-                    playingMap.delete(request.body.voiceChannelId);
-                    redis.publish(`${id}:ended`, 'success');
                 },
                 onError(e) {
                     console.log('fuck')
@@ -89,6 +99,15 @@ export function setupPlayRoute(server: FastifyInstance, playingMap: Map<String, 
             }
 
             player.play(resource);
+            player.on(AudioPlayerStatus.Idle, () => {
+                playingMap.delete(request.body.voiceChannelId);
+                redis.publish(`player_events`, JSON.stringify({
+                    channel: request.body.voiceChannelId,
+                    event: IPlayerEvent.EndedPlaying,
+                    id: id
+                } as IPlayerEventMessage))
+                redis.publish(`${id}:ended`, 'success');
+            });
             connection.subscribe(player);
 
 

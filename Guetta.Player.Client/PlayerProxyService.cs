@@ -1,10 +1,9 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using Guetta.Abstractions;
-using StackExchange.Redis;
 
-namespace Guetta.Services
+namespace Guetta.Player.Client
 {
     public class PlayerProxyService
     {
@@ -15,21 +14,20 @@ namespace Guetta.Services
 
         private HttpClient HttpClient { get; }
 
-        public async Task<string> Play(ulong textChannelId, ulong voiceChannelId, string userMention,
-            VideoInformation videoInformation, double volume)
+        public async Task<string> Play(ulong voiceChannelId,
+            VideoInformation videoInformation, 
+            double volume)
         {
             var request = await HttpClient.PostAsJsonAsync("play", new
             {
-                textChannelId = textChannelId.ToString(),
                 voiceChannelId = voiceChannelId.ToString(),
-                requestedByUser = userMention,
                 videoInformation,
                 initialVolume = volume
             });
 
             return request.IsSuccessStatusCode ? await request.Content.ReadAsStringAsync() : null;
         }
-        
+
         public async Task<bool> Skip(ulong voiceChannelId)
         {
             var request = await HttpClient.PostAsJsonAsync("skip", new
@@ -39,7 +37,7 @@ namespace Guetta.Services
 
             return await request.Content.ReadFromJsonAsync<bool>();
         }
-        
+
         public async Task<bool> Playing(ulong voiceChannelId)
         {
             var request = await HttpClient.PostAsJsonAsync("playing", new
@@ -49,7 +47,7 @@ namespace Guetta.Services
 
             return await request.Content.ReadFromJsonAsync<bool>();
         }
-        
+
         public async Task<bool> SetVolume(ulong voiceChannelId, double volume)
         {
             var request = await HttpClient.PostAsJsonAsync("volume", new

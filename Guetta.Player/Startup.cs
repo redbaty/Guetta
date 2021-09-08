@@ -1,6 +1,7 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Guetta.App.Extensions;
+using Guetta.App.Redis;
 using Guetta.Player.Requests;
 using Guetta.Player.Services;
 using Guetta.Player.Validators;

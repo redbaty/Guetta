@@ -7,22 +7,22 @@ using Guetta.Abstractions;
 using Guetta.App;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
-using Guetta.Services;
+using Guetta.Queue.Client;
 
 namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(QueueService queueService,
-            YoutubeDlService youtubeDlService, LocalisationService localisationService)
+        public PlayChannelCommand(YoutubeDlService youtubeDlService, LocalisationService localisationService,
+            QueueProxyService queueProxyService)
         {
-            QueueService = queueService;
             YoutubeDlService = youtubeDlService;
             LocalisationService = localisationService;
+            QueueProxyService = queueProxyService;
         }
 
-        private QueueService QueueService { get; }
-        
+        private QueueProxyService QueueProxyService { get; }
+
         private YoutubeDlService YoutubeDlService { get; }
 
         private LocalisationService LocalisationService { get; }
@@ -53,18 +53,20 @@ namespace Guetta.Commands
             input = Uri.TryCreate(url, UriKind.Absolute, out _) ? url : $"ytsearch:{message.Content}";
 
             var videoInformation = await YoutubeDlService.GetVideoInformation(input, CancellationToken.None);
+            
+            var enqueuedSuccessfully =
+                await QueueProxyService.Enqueue(discordMember.VoiceState.Channel.Id, message.ChannelId, message.Author.Mention, videoInformation);
 
-            await LocalisationService
-                .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
-                .DeleteMessageAfter(TimeSpan.FromSeconds(5));
-
-            QueueService.Enqueue(new QueueItem
+            if (enqueuedSuccessfully)
             {
-                User = message.Author,
-                TextChannel = message.Channel,
-                VoiceChannel = discordMember.VoiceState.Channel,
-                VideoInformation = videoInformation
-            });
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+            }
+            else
+            {
+                await message.Channel.SendMessageAsync("Failed to enqueue").DeleteMessageAfter(TimeSpan.FromSeconds(5));
+            }
         }
     }
 }

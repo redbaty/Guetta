@@ -4,6 +4,7 @@ using DSharpPlus.Entities;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
+using Guetta.Player.Client;
 using Guetta.Services;
 using StackExchange.Redis;
 

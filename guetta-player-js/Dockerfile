@@ -12,8 +12,6 @@ COPY tsconfig.json ./
 COPY src /app/src
 
 RUN yarn
-RUN yarn add sodium
-RUN yarn remove libsodium-wrappers
 RUN yarn build
 
 EXPOSE 3000

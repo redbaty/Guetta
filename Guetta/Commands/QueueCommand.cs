@@ -5,30 +5,49 @@ using DSharpPlus.Entities;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
+using Guetta.Queue.Client;
 using Guetta.Services;
 
 namespace Guetta.Commands
 {
     internal class QueueCommand : IDiscordCommand
     {
-        public QueueCommand(QueueService queueService, LocalisationService localisationService)
+        public QueueCommand(LocalisationService localisationService, QueueProxyService queueProxyService)
         {
-            QueueService = queueService;
             LocalisationService = localisationService;
+            QueueProxyService = queueProxyService;
         }
 
-        private QueueService QueueService { get; }
-        
+
         private LocalisationService LocalisationService { get; }
+
+        private QueueProxyService QueueProxyService { get; }
 
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
-            var queueMessage = "";
-
-            foreach (var queueItem in QueueService.GetQueueItems().OrderBy(i => i.CurrentQueueIndex))
+            if (message.Author is not DiscordMember discordMember)
             {
-                queueMessage += $"[{queueItem.CurrentQueueIndex + 1}] {queueItem.VideoInformation.Title} (Queued by: {queueItem.User.Mention}){Environment.NewLine}";
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "NotInChannel", message.Author.Mention)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                return;
             }
+
+            var queueItems = await QueueProxyService.GetQueueItems(discordMember.VoiceState.Channel.Id)
+                .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : null);
+
+            if (queueItems == null)
+            {
+                await message.Channel.SendMessageAsync("Could not connect to queue service, please try again later.")
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                return;
+            }
+
+            var queueMessage = queueItems.OrderBy(i => i.CurrentQueueIndex)
+                .Aggregate("",
+                    (current, queueItem) =>
+                        current +
+                        $"[{queueItem.CurrentQueueIndex + 1}] {queueItem.VideoInformation.Title} (Queued by: {queueItem.RequestedByUser}){Environment.NewLine}");
 
             if (string.IsNullOrEmpty(queueMessage))
             {

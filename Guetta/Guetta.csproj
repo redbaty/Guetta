@@ -15,8 +15,11 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Guetta.App.Redis\Guetta.App.Redis.csproj" />
       <ProjectReference Include="..\Guetta.App\Guetta.App.csproj" />
       <ProjectReference Include="..\Guetta.Localisation\Guetta.Localisation.csproj" />
+      <ProjectReference Include="..\Guetta.Player.Client\Guetta.Player.Client.csproj" />
+      <ProjectReference Include="..\Guetta.Queue.Client\Guetta.Queue.Client.csproj" />
     </ItemGroup>
 
 </Project>

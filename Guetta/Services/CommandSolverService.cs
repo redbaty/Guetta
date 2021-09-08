@@ -31,7 +31,7 @@ namespace Guetta.Services
                 return (IDiscordCommand) Provider.GetService(commandType);
             }
 
-            throw new NotImplementedException();
+            return null;
         }
     }
 }

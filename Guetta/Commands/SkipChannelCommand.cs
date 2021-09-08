@@ -4,19 +4,21 @@ using DSharpPlus.Entities;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
+using Guetta.Player.Client;
+using Guetta.Queue.Client;
 using Guetta.Services;
 
 namespace Guetta.Commands
 {
     internal class SkipChannelCommand : IDiscordCommand
     {
-        public SkipChannelCommand(QueueService queueService, LocalisationService localisationService)
+        public SkipChannelCommand(LocalisationService localisationService, QueueProxyService queueProxyService)
         {
-            QueueService = queueService;
             LocalisationService = localisationService;
+            QueueProxyService = queueProxyService;
         }
 
-        private QueueService QueueService { get; }
+        private QueueProxyService QueueProxyService { get; }
         
         private LocalisationService LocalisationService { get; }
 
@@ -30,14 +32,8 @@ namespace Guetta.Commands
                 return;
             }
             
-            if (!await QueueService.CanSkip(discordMember.VoiceState.Channel.Id))
-            {
-                await LocalisationService.SendMessageAsync(message.Channel, "CantSkip", message.Author.Mention)
-                    .DeleteMessageAfter(TimeSpan.FromSeconds(15));
-                return;
-            }
-
-            await QueueService.Skip(discordMember.VoiceState.Channel.Id);
+            
+            await QueueProxyService.Skip(discordMember.VoiceState.Channel.Id);
             await LocalisationService.SendMessageAsync(message.Channel, "SongSkipped", message.Author.Mention)
                 .DeleteMessageAfter(TimeSpan.FromSeconds(15));
         }

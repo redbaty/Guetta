@@ -20,9 +20,16 @@ const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES]
 });
 
-client.once('ready', () => {
+client.once('ready', async () => {
     console.log('Ready!');
     setupRoutes(server, playingMap, redis, client);
+
+    try {
+        await server.listen(process.env.PORT || 3000, '0.0.0.0')
+    } catch (err) {
+        server.log.error(err)
+        process.exit(1)
+    }
 });
 
 console.log('Trying to log in');
@@ -30,10 +37,3 @@ await client.login(process.env.TOKEN);
 console.log('Logged in');
 
 console.log(generateDependencyReport());
-
-try {
-    await server.listen(process.env.PORT || 3000, '0.0.0.0')
-} catch (err) {
-    server.log.error(err)
-    process.exit(1)
-}

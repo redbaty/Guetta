@@ -1,6 +1,6 @@
 using System;
 
-namespace Guetta.App.Exceptions
+namespace Guetta.Abstractions.Exceptions
 {
     public sealed class MissingEnvironmentVariableException : Exception
     {

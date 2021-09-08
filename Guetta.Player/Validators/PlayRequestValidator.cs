@@ -15,14 +15,6 @@ namespace Guetta.Player.Validators
                     return channel != null;
                 })
                 .WithMessage("Voice channel does not exist.");
-            
-            RuleFor(i => i.TextChannelId)
-                .MustAsync(async (textChannelId, _) =>
-                {
-                    var channel = await discordClient.GetChannelAsync(textChannelId).ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : null);
-                    return channel != null;
-                })
-                .WithMessage("Text channel does not exist.");
         }
     }
 }
