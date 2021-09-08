@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="DSharpPlus.VoiceNext" Version="4.1.0" />
+      <PackageReference Include="DSharpPlus" Version="4.1.0" />
       <PackageReference Include="MessagePack" Version="2.3.75" />
       <PackageReference Include="MessagePackAnalyzer" Version="2.3.75" />
     </ItemGroup>

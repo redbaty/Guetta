@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using DSharpPlus;
-using DSharpPlus.VoiceNext;
 using Guetta.Abstractions.Exceptions;
 using Guetta.App;
-using Guetta.App.Extensions;
 using Guetta.App.Redis;
 using Guetta.Commands.Extensions;
 using Guetta.Localisation;
@@ -34,9 +32,8 @@ namespace Guetta
                 Token =  Environment.GetEnvironmentVariable("TOKEN") ?? throw new MissingEnvironmentVariableException("TOKEN"),
                 TokenType = TokenType.Bot,
                 LoggerFactory = new SerilogLoggerFactory(),
-                Intents = DiscordIntents.Guilds | DiscordIntents.GuildMessages | DiscordIntents.GuildVoiceStates
+                Intents = DiscordIntents.Guilds | DiscordIntents.GuildMessages
             });
-            discordSocketClient.UseVoiceNext();
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddOptions();
