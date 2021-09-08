@@ -14,27 +14,28 @@ spec:
     spec:
       containers:
       - name: player
-        image: redbaty/guetta:player-latest
+        image: redbaty/guetta-player-js:latest
         imagePullPolicy: Always
         envFrom:
           - configMapRef:
-              name: guetta-player-envs
+              name: guetta-player-js-envs
         resources:
           requests:
             memory: "128Mi"
-            cpu: "1000m"
+            cpu: "500m"
           limits:
             memory: "512Mi"
-            cpu: "2000m"
+            cpu: "1000m"
         ports:
-        - containerPort: 80
+        - containerPort: 3000
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: guetta-player-envs
+  name: guetta-player-js-envs
   namespace: guetta 
 data:
   ASPNETCORE_ENVIRONMENT: "Development"
   TOKEN: "<TOKEN>"
-  REDIS: "redis-service.guetta"
+  REDIS_HOST: "redis-service.guetta"
+  REDIS_PORT: "6379"
