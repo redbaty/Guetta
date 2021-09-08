@@ -30,8 +30,8 @@ namespace Guetta.Queue.Controllers
         public IAsyncEnumerable<PlayRequest> GetQueueItems([FromQuery] QueueListRequest request) =>
             QueueService.GetQueueItems(request.VoiceChannelId);
 
-        [HttpPatch("skip")]
-        public Task Skip([FromQuery] QueueSkipRequest queueSkipRequest) =>
+        [HttpPost("skip")]
+        public Task Skip([FromBody] QueueSkipRequest queueSkipRequest) =>
             QueueService.Skip(queueSkipRequest.VoiceChannelId);
 
         [HttpPost]

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -35,12 +35,12 @@ namespace Guetta.Queue.Client
 
         public async Task<bool> Skip(ulong voiceChannelId)
         {
-            var request = await HttpClient.PostAsJsonAsync("skip", new
+            var request = await HttpClient.PostAsJsonAsync("queue/skip", new
             {
                 voiceChannelId = voiceChannelId.ToString()
             });
 
-            return await request.Content.ReadFromJsonAsync<bool>();
+            return request.IsSuccessStatusCode;
         }
     }
 }
