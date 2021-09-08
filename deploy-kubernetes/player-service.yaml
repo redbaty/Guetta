@@ -9,4 +9,4 @@ spec:
     app: player
   ports:
   - port: 80
-    targetPort: 80
+    targetPort: 3000
