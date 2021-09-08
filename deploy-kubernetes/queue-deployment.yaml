@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guetta-queue
+  namespace: guetta
+spec:
+  selector:
+    matchLabels:
+      app: guetta-queue
+  template:
+    metadata:
+      labels:
+        app: guetta-queue
+    spec:
+      containers:
+      - name: queue-api
+        image: redbaty/guetta-queue:latest
+        imagePullPolicy: Always
+        envFrom:
+          - configMapRef:
+              name: guetta-queue-envs
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guetta-queue-envs
+  namespace: guetta 
+data:
+  PLAYER_URL: "http://guetta-player-service.guetta"
+  REDIS: "redis-service.guetta"

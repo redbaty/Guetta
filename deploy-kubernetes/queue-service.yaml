@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: guetta-player-service
+  name: guetta-queue-service
   namespace: guetta
 spec:
   type: ClusterIP
   selector:
-    app: player
+    app: guetta-queue
   ports:
   - port: 80
-    targetPort: 3000
+    targetPort: 80
