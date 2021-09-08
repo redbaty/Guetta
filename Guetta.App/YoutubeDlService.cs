@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -54,48 +54,5 @@ namespace Guetta.App
                 Url = $"https://www.youtube.com/watch?v={rootElement.GetProperty("id").GetString()}",
                 Title = rootElement.GetProperty("title").GetString()
             };
-        
-        public async Task SendToAudioSink(string input, VoiceTransmitSink currentDiscordStream,
-            CancellationToken cancellationToken)
-        {
-            var youtubeDlArguments = new[]
-            {
-                "-f bestaudio[ext=webm+acodec=opus+asr=48000]/bestaudio",
-                "-r 100K",
-                "--no-continue",
-                $"\"{input}\"",
-                "-o -"
-            };
-            
-            var youtubeDlCommand = Cli.Wrap("youtube-dl")
-                .WithStandardErrorPipe(PipeTarget.ToDelegate(s =>
-                    Logger.LogDebug("Youtube-DL message: {@Message}", s)))
-                .WithArguments(youtubeDlArguments, false);
-
-            Logger.LogDebug("{@Program} arguments: {@Arguments}", "youtube-dl", youtubeDlArguments);
-
-            var ffmpegArguments = new[]
-            {
-                "-hide_banner",
-                "-hwaccel auto",
-                "-i -",
-                "-ac 2",
-                "-f s16le",
-                "-ar 48000",
-                "-"
-            };
-
-            Logger.LogDebug("{@Program} arguments: {@Arguments}", "ffmpeg", ffmpegArguments);
-
-            await using var stream = new VoiceTransmitSinkStream(currentDiscordStream);
-
-            var ffmpegCommand = Cli.Wrap("ffmpeg")
-                .WithStandardInputPipe(PipeSource.FromCommand(youtubeDlCommand))
-                .WithStandardOutputPipe(PipeTarget.ToStream(stream, false))
-                .WithStandardErrorPipe(PipeTarget.ToDelegate(s => Logger.LogDebug("FFMpeg message: {@Message}", s)))
-                .WithArguments(ffmpegArguments, false);
-
-            await ffmpegCommand.ExecuteAsync(cancellationToken);
-        }
     }
 }
