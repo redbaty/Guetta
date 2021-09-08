@@ -19,6 +19,8 @@ spec:
         envFrom:
           - configMapRef:
               name: guetta-queue-envs
+        ports:
+        - containerPort: 80
         resources:
           limits:
             memory: "128Mi"
