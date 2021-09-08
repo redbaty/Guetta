@@ -9,18 +9,20 @@ using Guetta.App.Extensions;
 using Guetta.Localisation;
 using Guetta.Queue.Client;
 using Microsoft.Extensions.Logging;
+using YoutubeExplode;
 
 namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
         public PlayChannelCommand(YoutubeDlService youtubeDlService, LocalisationService localisationService,
-            QueueProxyService queueProxyService, ILogger<PlayChannelCommand> logger)
+            QueueProxyService queueProxyService, ILogger<PlayChannelCommand> logger, YoutubeClient youtubeClient)
         {
             YoutubeDlService = youtubeDlService;
             LocalisationService = localisationService;
             QueueProxyService = queueProxyService;
             Logger = logger;
+            YoutubeClient = youtubeClient;
         }
 
         private QueueProxyService QueueProxyService { get; }
@@ -30,6 +32,8 @@ namespace Guetta.Commands
         private LocalisationService LocalisationService { get; }
 
         private ILogger<PlayChannelCommand> Logger { get; }
+
+        private YoutubeClient YoutubeClient { get; }
 
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
@@ -50,37 +54,40 @@ namespace Guetta.Commands
             }
 
             await message.Channel.TriggerTypingAsync();
-            var url = arguments.Last();
-            string input;
 
+            var searchTerm = arguments.Aggregate((x, y) => $"{x} {y}").Trim();
+            var searchResult = await YoutubeClient.Search.GetVideosAsync(searchTerm).FirstOrDefaultAsync();
 
-            input = Uri.TryCreate(url, UriKind.Absolute, out _) ? url : $"ytsearch:{message.Content}";
-
-            var videoInformation = await YoutubeDlService.GetVideoInformation(input, CancellationToken.None)
-                .ContinueWith(t =>
-                {
-                    if (t.IsCompletedSuccessfully)
-                        return t.Result;
-
-                    Logger.LogError(t.Exception, "Failed to obtain video information");
-                    return null;
-                });
-
-            Logger.LogInformation("Video information for queued gathered. {@VideoInformation}", videoInformation);
-
-            var enqueuedSuccessfully = videoInformation != null && await QueueProxyService.Enqueue(
-                discordMember.VoiceState.Channel.Id, message.ChannelId,
-                message.Author.Mention, videoInformation);
-
-            if (enqueuedSuccessfully)
+            if (searchResult != null)
             {
-                await LocalisationService
-                    .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
-                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                var videoInformation = new VideoInformation
+                {
+                    Title = searchResult?.Title,
+                    Url = searchResult?.Url
+                };
+
+                Logger.LogInformation("Video information for queued gathered. {@VideoInformation}", videoInformation);
+
+                var enqueuedSuccessfully = await QueueProxyService.Enqueue(
+                    discordMember.VoiceState.Channel.Id, message.ChannelId,
+                    message.Author.Mention, videoInformation);
+
+                if (enqueuedSuccessfully)
+                {
+                    await LocalisationService
+                        .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
+                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                }
+                else
+                {
+                    await message.Channel.SendMessageAsync("Failed to enqueue")
+                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                }
             }
             else
             {
-                await message.Channel.SendMessageAsync("Failed to enqueue").DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                await message.Channel.SendMessageAsync("No results from that search query")
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
         }
     }
