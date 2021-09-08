@@ -31,5 +31,5 @@ metadata:
   namespace: guetta 
 data:
   TOKEN: "<TOKEN>"
-  PLAYER_PROXY_URL: "http://guetta-player-service.guetta"
+  QUEUE_URL: "http://guetta-queue-service.guetta"
   REDIS: "redis-service.guetta"
