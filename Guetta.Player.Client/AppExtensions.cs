@@ -10,8 +10,8 @@ namespace Guetta.Player.Client
         {
             serviceCollection.AddHttpClient<PlayerProxyService>(c =>
             {
-                c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("PLAYER_PROXY_URL") ??
-                                        throw new MissingEnvironmentVariableException("PLAYER_PROXY_URL"));
+                c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("PLAYER_URL") ??
+                                        throw new MissingEnvironmentVariableException("PLAYER_URL"));
             });
         }
     }
