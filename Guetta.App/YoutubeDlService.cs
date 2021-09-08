@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CliWrap;
 using CliWrap.Buffered;
-using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
 using Microsoft.Extensions.Logging;
 
@@ -28,12 +27,17 @@ namespace Guetta.App
                 "-J",
                 $"\"{input}\""
             };
+            
+            var youtubeDlCommand = Cli.Wrap("youtube-dl")
+                .WithArguments(youtubeDlArguments, false);
 
-            var youtubeDlCommand = await Cli.Wrap("youtube-dl")
-                .WithArguments(youtubeDlArguments, false)
-                .ExecuteBufferedAsync(Encoding.UTF8, cancellationToken);
+            Logger.LogInformation("Calling youtube-dl with args: {@Arguments}", youtubeDlCommand);
 
-            var jsonDocument = JsonDocument.Parse(youtubeDlCommand.StandardOutput);
+            var exec = await youtubeDlCommand.ExecuteBufferedAsync(Encoding.UTF8, cancellationToken);
+            var jsonDocument = JsonDocument.Parse(exec.StandardOutput);
+            
+            Logger.LogInformation("Youtube-DL ran, and results were parsed");
+            
             var rootElement = jsonDocument.RootElement;
 
             if (rootElement.TryGetProperty("entries", out var entriesElement) &&
