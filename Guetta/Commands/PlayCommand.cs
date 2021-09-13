@@ -10,6 +10,7 @@ using Guetta.Localisation;
 using Guetta.Queue.Client;
 using Microsoft.Extensions.Logging;
 using YoutubeExplode;
+using YoutubeExplode.Videos;
 
 namespace Guetta.Commands
 {
@@ -56,16 +57,29 @@ namespace Guetta.Commands
             await message.Channel.TriggerTypingAsync();
 
             var searchTerm = arguments.Aggregate((x, y) => $"{x} {y}").Trim();
-            var searchResult = await YoutubeClient.Search.GetVideosAsync(searchTerm).FirstOrDefaultAsync();
+            VideoInformation videoInformation;
 
-            if (searchResult != null)
+            if (Uri.TryCreate(searchTerm, UriKind.Absolute, out var uri))
             {
-                var videoInformation = new VideoInformation
+                var video = await YoutubeClient.Videos.GetAsync(VideoId.Parse(searchTerm));
+                videoInformation = new VideoInformation
                 {
-                    Title = searchResult?.Title,
-                    Url = searchResult?.Url
+                    Title = video.Title,
+                    Url = video.Url
                 };
+            }
+            else
+            {
+                var searchResult = await YoutubeClient.Search.GetVideosAsync(searchTerm).FirstOrDefaultAsync();
+                videoInformation = searchResult == null ? null : new VideoInformation
+                {
+                    Title = searchResult.Title,
+                    Url = searchResult.Url
+                };
+            }
 
+            if (videoInformation != null)
+            {
                 Logger.LogInformation("Video information for queued gathered. {@VideoInformation}", videoInformation);
 
                 var enqueuedSuccessfully = await QueueProxyService.Enqueue(
