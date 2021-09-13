@@ -41,7 +41,6 @@ namespace Guetta
             serviceCollection.AddSingleton(discordSocketClient);
             serviceCollection.AddSingleton<SocketClientEventsService>();
             serviceCollection.AddSingleton<CommandSolverService>();
-            serviceCollection.AddTransient<YoutubeDlService>();
             serviceCollection.AddGuettaCommands();
             serviceCollection.AddGuettaLocalisation();
             serviceCollection.WithPrefix("!");

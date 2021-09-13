@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Guetta.Abstractions;
-using Guetta.App;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
 using Guetta.Queue.Client;
@@ -16,10 +15,9 @@ namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(YoutubeDlService youtubeDlService, LocalisationService localisationService,
+        public PlayChannelCommand(LocalisationService localisationService,
             QueueProxyService queueProxyService, ILogger<PlayChannelCommand> logger, YoutubeClient youtubeClient)
         {
-            YoutubeDlService = youtubeDlService;
             LocalisationService = localisationService;
             QueueProxyService = queueProxyService;
             Logger = logger;
@@ -27,8 +25,6 @@ namespace Guetta.Commands
         }
 
         private QueueProxyService QueueProxyService { get; }
-
-        private YoutubeDlService YoutubeDlService { get; }
 
         private LocalisationService LocalisationService { get; }
 
