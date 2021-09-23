@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "tsc && cross-env REDIS_HOST=localhost REDIS_PORT=6379 TOKEN=ODg5Mjk2MDcwMTI1OTY5NDI4.YUfLgQ.WQrLlZLtdxcm5psN7M0hHIuA0EM node ./dist/server.js"
+    "start": "tsc && cross-env REDIS_HOST=localhost REDIS_PORT=6379 TOKEN=<TOKEN> node ./dist/server.js"
   },
   "keywords": [],
   "author": "",
