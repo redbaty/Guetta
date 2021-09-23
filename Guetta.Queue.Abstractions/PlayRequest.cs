@@ -2,7 +2,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Guetta.Abstractions;
-using Guetta.Abstractions.Converters;
 using MessagePack;
 
 namespace Guetta.Queue.Abstractions
@@ -10,10 +9,9 @@ namespace Guetta.Queue.Abstractions
     [MessagePackObject]
     public class PlayRequest : IValidatableObject, IPlayRequest
     {
-        [JsonConverter(typeof(UlongConverter))]
         [MessagePack.Key(0)]
         [JsonPropertyName("voiceChannelId")]
-        public ulong VoiceChannelId { get; set; }
+        public string VoiceChannelId { get; set; }
 
         [MessagePack.Key(1)]
         [JsonPropertyName("videoInformation")]

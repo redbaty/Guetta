@@ -21,9 +21,9 @@ namespace Guetta.Queue.Services
 
         private IDatabase Database { get; }
 
-        private static string GetStatusName(ulong channelId) => $"{channelId}_status";
+        private static string GetStatusName(string channelId) => $"{channelId}_status";
 
-        public async Task<QueueStatus> GetQueueStatus(ulong channelId)
+        public async Task<QueueStatus> GetQueueStatus(string channelId)
         {
             var statusName = GetStatusName(channelId);
             await using var @lock = await RedLockFactory.CreateLockAsync(statusName, TimeSpan.FromSeconds(10));
@@ -45,7 +45,7 @@ namespace Guetta.Queue.Services
             return queueStatus;
         }
         
-        public async Task<QueueStatus> UpdateQueueStatus(ulong channelId, QueueStatusEnum newStatus, QueueItem newCurrentlyPlaying, string playingId)
+        public async Task<QueueStatus> UpdateQueueStatus(string channelId, QueueStatusEnum newStatus, QueueItem newCurrentlyPlaying)
         {
             var statusName = GetStatusName(channelId);
             await using var @lock = await RedLockFactory.CreateLockAsync(statusName, TimeSpan.FromSeconds(10));
@@ -56,7 +56,6 @@ namespace Guetta.Queue.Services
             var newQueueStatus = await GetQueueStatusNoLock(statusName) ?? new QueueStatus{QueueChannel = channelId};
             newQueueStatus.Status = newStatus;
             newQueueStatus.CurrentlyPlaying = newCurrentlyPlaying;
-            newQueueStatus.PlayingId = playingId;
 
             var newQueueStatusSerialized = MessagePackSerializer.Serialize(newQueueStatus);
             await Database.StringSetAsync(statusName, newQueueStatusSerialized);

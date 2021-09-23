@@ -6,6 +6,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Guetta.Abstractions\Guetta.Abstractions.csproj" />
+        <ProjectReference Include="..\Guetta.App.RabbitMQ\Guetta.App.RabbitMQ.csproj" />
         <ProjectReference Include="..\Guetta.Queue.Abstractions\Guetta.Queue.Abstractions.csproj" />
     </ItemGroup>
 

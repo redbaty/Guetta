@@ -32,7 +32,7 @@ namespace Guetta.Queue.Controllers
 
         [HttpPost("skip")]
         public Task Skip([FromBody] QueueSkipRequest queueSkipRequest) =>
-            QueueService.Skip(queueSkipRequest.VoiceChannelId);
+            QueueService.Next(queueSkipRequest.VoiceChannelId);
 
         [HttpPost]
         public async Task<long?> Post([FromBody] QueueItem queueItem) =>

@@ -19,6 +19,17 @@ spec:
         envFrom:
           - configMapRef:
               name: guetta-envs
+        env:
+          - name: RABBIT_MQ_USER
+            valueFrom:
+              secretKeyRef:
+                name: user-guetta-user-credentials
+                key: username         
+          - name: RABBIT_MQ_PASS
+            valueFrom:
+              secretKeyRef:
+                name: user-guetta-user-credentials
+                key: password                     
         resources:
           limits:
             memory: "128Mi"
@@ -32,4 +43,6 @@ metadata:
 data:
   TOKEN: "<TOKEN>"
   QUEUE_URL: "http://guetta-queue-service.guetta"
+  PLAYER_URL: "http://guetta-player-service.guetta"
   REDIS: "redis-service.guetta"
+  RABBIT_MQ_HOST: "rabbit-cluster.guetta"  

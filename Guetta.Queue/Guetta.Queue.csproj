@@ -11,6 +11,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Guetta.App.RabbitMQ\Guetta.App.RabbitMQ.csproj" />
       <ProjectReference Include="..\Guetta.App.Redis\Guetta.App.Redis.csproj" />
       <ProjectReference Include="..\Guetta.Player.Client\Guetta.Player.Client.csproj" />
       <ProjectReference Include="..\Guetta.Queue.Abstractions\Guetta.Queue.Abstractions.csproj" />

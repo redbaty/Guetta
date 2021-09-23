@@ -17,6 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Guetta.App.RabbitMQ\Guetta.App.RabbitMQ.csproj" />
       <ProjectReference Include="..\Guetta.App.Redis\Guetta.App.Redis.csproj" />
       <ProjectReference Include="..\Guetta.App\Guetta.App.csproj" />
       <ProjectReference Include="..\Guetta.Localisation\Guetta.Localisation.csproj" />

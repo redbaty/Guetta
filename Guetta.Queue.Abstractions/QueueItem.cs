@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using Guetta.Abstractions.Converters;
 using MessagePack;
 
 namespace Guetta.Queue.Abstractions
@@ -11,9 +10,8 @@ namespace Guetta.Queue.Abstractions
         [JsonPropertyName("requestedByUser")]
         public string RequestedByUser { get; set; }
         
-        [JsonConverter(typeof(UlongConverter))]
         [Key(3)]
         [JsonPropertyName("requestedByChannel")]
-        public ulong RequestedByChannel { get; set; }
+        public string RequestedByChannel { get; set; }
     }
 }

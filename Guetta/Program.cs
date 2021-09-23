@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using Guetta.Abstractions.Exceptions;
 using Guetta.App;
+using Guetta.App.RabbitMQ;
 using Guetta.App.Redis;
 using Guetta.Commands.Extensions;
 using Guetta.Localisation;
@@ -46,9 +47,10 @@ namespace Guetta
             serviceCollection.WithPrefix("!");
             serviceCollection.AddLogging(builder => builder.AddSerilog());
             serviceCollection.AddRedisConnection();
-            serviceCollection.AddPlayerClient();
             serviceCollection.AddQueueClient();
             serviceCollection.AddTransient<YoutubeClient>();
+            serviceCollection.AddRabbitConnection();
+            serviceCollection.AddPlayerClient();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             await serviceProvider.ValidateAndConfigureLocalisation();

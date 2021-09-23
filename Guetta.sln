@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.Queue.Abstractions",
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Queue", "Queue", "{ECA8D3D8-00FC-44ED-AB60-27E64811D567}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.App.RabbitMQ", "Guetta.App.RabbitMQ\Guetta.App.RabbitMQ.csproj", "{D9D18FFC-4ED2-4E5B-AE2C-E02958180684}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -62,6 +64,10 @@ Global
 		{DD4AB19A-67A2-4D98-832E-6FB6470A05F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DD4AB19A-67A2-4D98-832E-6FB6470A05F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DD4AB19A-67A2-4D98-832E-6FB6470A05F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D9D18FFC-4ED2-4E5B-AE2C-E02958180684}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D9D18FFC-4ED2-4E5B-AE2C-E02958180684}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D9D18FFC-4ED2-4E5B-AE2C-E02958180684}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D9D18FFC-4ED2-4E5B-AE2C-E02958180684}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{459AA51E-6959-485E-B952-2382A820AF4E} = {ECA8D3D8-00FC-44ED-AB60-27E64811D567}

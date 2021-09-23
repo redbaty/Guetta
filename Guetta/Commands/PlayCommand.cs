@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using Guetta.Abstractions;
@@ -15,22 +14,21 @@ namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(LocalisationService localisationService,
-            QueueProxyService queueProxyService, ILogger<PlayChannelCommand> logger, YoutubeClient youtubeClient)
+        public PlayChannelCommand(LocalisationService localisationService, ILogger<PlayChannelCommand> logger, YoutubeClient youtubeClient, QueueProxyService queueProxyService)
         {
             LocalisationService = localisationService;
-            QueueProxyService = queueProxyService;
             Logger = logger;
             YoutubeClient = youtubeClient;
+            QueueProxyService = queueProxyService;
         }
-
-        private QueueProxyService QueueProxyService { get; }
 
         private LocalisationService LocalisationService { get; }
 
         private ILogger<PlayChannelCommand> Logger { get; }
 
         private YoutubeClient YoutubeClient { get; }
+
+        private QueueProxyService QueueProxyService { get; }
 
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
@@ -55,7 +53,7 @@ namespace Guetta.Commands
             var searchTerm = arguments.Aggregate((x, y) => $"{x} {y}").Trim();
             VideoInformation videoInformation;
 
-            if (Uri.TryCreate(searchTerm, UriKind.Absolute, out var uri))
+            if (Uri.TryCreate(searchTerm, UriKind.Absolute, out _))
             {
                 var video = await YoutubeClient.Videos.GetAsync(VideoId.Parse(searchTerm));
                 videoInformation = new VideoInformation
@@ -67,32 +65,24 @@ namespace Guetta.Commands
             else
             {
                 var searchResult = await YoutubeClient.Search.GetVideosAsync(searchTerm).FirstOrDefaultAsync();
-                videoInformation = searchResult == null ? null : new VideoInformation
-                {
-                    Title = searchResult.Title,
-                    Url = searchResult.Url
-                };
+                videoInformation = searchResult == null
+                    ? null
+                    : new VideoInformation
+                    {
+                        Title = searchResult.Title,
+                        Url = searchResult.Url
+                    };
             }
 
             if (videoInformation != null)
             {
                 Logger.LogInformation("Video information for queued gathered. {@VideoInformation}", videoInformation);
 
-                var enqueuedSuccessfully = await QueueProxyService.Enqueue(
-                    discordMember.VoiceState.Channel.Id, message.ChannelId,
-                    message.Author.Mention, videoInformation);
+                QueueProxyService.Enqueue(discordMember.VoiceState.Channel.Id, message.ChannelId, message.Author.Mention, videoInformation);
 
-                if (enqueuedSuccessfully)
-                {
-                    await LocalisationService
-                        .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
-                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
-                }
-                else
-                {
-                    await message.Channel.SendMessageAsync("Failed to enqueue")
-                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
-                }
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
             else
             {

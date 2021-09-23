@@ -1,0 +1,38 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: user-guetta-credentials
+  namespace: guetta
+type: Opaque
+stringData:
+  username: user-guetta
+  password: '&.2(;FYbm_Q4J8a>'
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: user-guetta
+  namespace: guetta
+spec:
+  tags:
+  - administrator
+  rabbitmqClusterReference:
+    name: rabbit-cluster
+  importCredentialsSecret:
+    name: user-guetta-credentials
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: user-guetta-permission
+  namespace: guetta
+spec:
+  vhost: "/"
+  user: "user-guetta"
+  permissions:
+    write: ".*"
+    configure: ".*"
+    read: ".*"
+  rabbitmqClusterReference:
+    name: rabbit-cluster

@@ -8,15 +8,12 @@ namespace Guetta.Queue.Models
     public class QueueStatus
     {
         [Key(0)]
-        public ulong QueueChannel { get; set; }
+        public string QueueChannel { get; set; }
 
         [Key(1)]
         public QueueStatusEnum Status { get; set; }
 
         [Key(2)]
         public QueueItem CurrentlyPlaying { get; set; }
-
-        [Key(3)]
-        public string PlayingId { get; set; }
     }
 }

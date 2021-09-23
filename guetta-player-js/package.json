@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "start": "tsc && node ./dist/server.js"
+    "start": "tsc && cross-env REDIS_HOST=localhost REDIS_PORT=6379 TOKEN=ODg5Mjk2MDcwMTI1OTY5NDI4.YUfLgQ.WQrLlZLtdxcm5psN7M0hHIuA0EM node ./dist/server.js"
   },
   "keywords": [],
   "author": "",
@@ -15,13 +15,17 @@
     "@discordjs/opus": "^0.6.0",
     "@discordjs/voice": "^0.6.0",
     "@types/ioredis": "^4.27.1",
+    "amqp-ts": "^1.8.0",
+    "amqplib": "^0.8.0",
     "discord.js": "^13.1.0",
     "fastify": "^3.20.2",
     "ioredis": "^4.27.8",
     "libsodium-wrappers": "^0.7.9",
     "nanoid": "^3.1.25",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "~4.2.2",
-    "youtube-dl-exec": "^1.2.4"
+    "typescript": "~4.2.2"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }

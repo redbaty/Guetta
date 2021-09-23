@@ -12,6 +12,7 @@ namespace Guetta.Commands.Extensions
             serviceCollection.AddCommand<SkipChannelCommand>("skip");
             serviceCollection.AddCommand<QueueCommand>("queue");
             serviceCollection.AddCommand<ClearCommand>("clear");
+            serviceCollection.AddCommand<HelpCommand>("help");
         }
     }
 }

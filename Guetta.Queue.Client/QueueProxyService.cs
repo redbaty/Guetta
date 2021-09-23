@@ -2,44 +2,37 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Guetta.Abstractions;
 using Guetta.Queue.Abstractions;
-using Microsoft.Extensions.Logging;
+using MessagePack;
+using RabbitMQ.Client;
 
 namespace Guetta.Queue.Client
 {
     public class QueueProxyService
     {
-        public QueueProxyService(HttpClient httpClient, ILogger<QueueProxyService> logger)
+        public QueueProxyService(HttpClient httpClient, IModel rabbitModel)
         {
             HttpClient = httpClient;
-            Logger = logger;
+            RabbitModel = rabbitModel;
         }
 
         private HttpClient HttpClient { get; }
-        
-        private ILogger<QueueProxyService> Logger { get; }
 
-        public async Task<bool> Enqueue(ulong voiceChannelId, ulong textChannelId, string user, VideoInformation videoInformation)
+        private IModel RabbitModel { get; }
+
+        public void Enqueue(ulong voiceChannelId, ulong textChannelId, string user, VideoInformation videoInformation)
         {
-            return await HttpClient.PostAsJsonAsync("queue", new
+            RabbitModel.BasicPublish(string.Empty, "play", true, body: MessagePackSerializer.Serialize(new QueueItem
             {
-                voiceChannelId = voiceChannelId.ToString(),
-                requestedByChannel = textChannelId.ToString(),
-                requestedByUser = user,
-                videoInformation
-            }).ContinueWith(t =>
-            {
-                if (t.IsCompletedSuccessfully && t.Result.IsSuccessStatusCode)
-                {
-                    Logger.LogInformation("Enqueued new song. {@VideoInformation}", videoInformation);
-                    return true;
-                }
-                
-                Logger.LogError("Failed to enqueue new song. {@VideoInformation}", videoInformation);
-                return false;
-            });
+                VideoInformation = videoInformation,
+                RequestedByChannel = textChannelId.ToString(),
+                RequestedByUser = user,
+                VoiceChannelId = voiceChannelId.ToString()
+            }));
         }
 
         public Task<QueueItemWithIndex[]> GetQueueItems(ulong voiceChannelId)
@@ -47,14 +40,15 @@ namespace Guetta.Queue.Client
             return HttpClient.GetFromJsonAsync<QueueItemWithIndex[]>($"queue/items?VoiceChannelId={voiceChannelId}");
         }
 
-        public async Task<bool> Skip(ulong voiceChannelId)
+        public void Skip(ulong voiceChannelId)
         {
-            var request = await HttpClient.PostAsJsonAsync("queue/skip", new
+            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new QueueRequest
             {
-                voiceChannelId = voiceChannelId.ToString()
-            });
-
-            return request.IsSuccessStatusCode;
+                VoiceChannelId = voiceChannelId.ToString(),
+                RequestType = RequestType.Skip
+            }));
+            
+            RabbitModel.BasicPublish(string.Empty, "queue_command", true, body: body);
         }
     }
 }

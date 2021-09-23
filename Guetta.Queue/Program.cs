@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Guetta.App.RabbitMQ;
 using Guetta.Queue.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,9 +13,16 @@ namespace Guetta.Queue
         {
             var host = CreateHostBuilder(args).Build();
 
-            var subscriber = host.Services.GetService<PlayerEventSubscriberService>();
-            await subscriber!.Subscribe();
-
+            var playerEventSubscriberService = host.Services.GetService<PlayerEventSubscriberService>();
+            await playerEventSubscriberService!.Subscribe();
+            
+            var rabbitQueueReader = host.Services.GetService<RabbitQueueReader>(); 
+            rabbitQueueReader!.Initialize();
+            
+            var rabbitQueueManagerReader = host.Services.GetService<RabbitQueueCommandReader>(); 
+            rabbitQueueManagerReader!.Initialize();
+            
+            host.Services.InitializeRabbitQueues();
             await host.RunAsync();
         }
 

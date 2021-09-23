@@ -6,7 +6,6 @@ using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
 using Guetta.Queue.Client;
-using Guetta.Services;
 
 namespace Guetta.Commands
 {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Guetta.Abstractions;
 using Guetta.Queue.Models;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using RedLockNet.SERedis;
 using StackExchange.Redis;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Guetta.Queue.Services
 {
@@ -39,39 +39,41 @@ namespace Guetta.Queue.Services
             IsSubscribed = true;
         }
 
-        private async Task OnPlayerEvent(ChannelMessage channelMessage)
+        private Task OnPlayerEvent(ChannelMessage channelMessage)
         {
             var message = channelMessage.Message;
             if (message.HasValue)
             {
                 try
                 {
-                    var playerEventMessage = JsonSerializer.Deserialize<PlayerEventMessage>(message);
-                    
-                    using var serviceScope = ServiceProvider.CreateScope();
-                    var redLockFactory = serviceScope.ServiceProvider.GetService<RedLockFactory>();
-                    await using var @lock = await redLockFactory!.CreateLockAsync(playerEventMessage!.Id, TimeSpan.FromSeconds(10));
-                    
-                    var queueStatusService = serviceScope.ServiceProvider.GetService<QueueStatusService>();
-                    var queueStatus = await queueStatusService!.GetQueueStatus(playerEventMessage.Channel);
-
-                    if (queueStatus.PlayingId == playerEventMessage.Id)
-                    {
-                        if (playerEventMessage!.Event == PlayerEvent.EndedPlaying)
-                        {
-                            await queueStatusService!.UpdateQueueStatus(playerEventMessage.Channel,
-                                QueueStatusEnum.Stopped, null, null);
-
-                            var queueService = serviceScope.ServiceProvider.GetService<QueueService>();
-                            await queueService!.CheckQueueStatus(playerEventMessage.Channel);
-                        }
-                    }
+                    // var playerEventMessage = JsonSerializer.Deserialize<PlayerEventMessage>(message);
+                    //
+                    // using var serviceScope = ServiceProvider.CreateScope();
+                    // var redLockFactory = serviceScope.ServiceProvider.GetService<RedLockFactory>();
+                    // await using var @lock = await redLockFactory!.CreateLockAsync(playerEventMessage!.Id, TimeSpan.FromSeconds(10));
+                    //
+                    // var queueStatusService = serviceScope.ServiceProvider.GetService<QueueStatusService>();
+                    // var queueStatus = await queueStatusService!.GetQueueStatus(playerEventMessage.Channel);
+                    //
+                    // if (queueStatus.PlayingId == playerEventMessage.Id)
+                    // {
+                    //     if (playerEventMessage!.Event == PlayerEvent.EndedPlaying)
+                    //     {
+                    //         await queueStatusService!.UpdateQueueStatus(playerEventMessage.Channel,
+                    //             QueueStatusEnum.Stopped, null, null);
+                    //
+                    //         var queueService = serviceScope.ServiceProvider.GetService<QueueService>();
+                    //         await queueService!.CheckQueueStatus(playerEventMessage.Channel);
+                    //     }
+                    // }
                 }
                 catch
                 {
                     Logger.LogWarning("An invalid player message was received. {@MessageContent}", message.ToString());
                 }
             }
+
+            return Task.CompletedTask;
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     public interface IPlayRequest
     {
-        ulong VoiceChannelId { get; }
+        string VoiceChannelId { get; }
 
         VideoInformation VideoInformation { get; }
     }

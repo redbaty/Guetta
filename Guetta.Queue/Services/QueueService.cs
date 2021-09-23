@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Guetta.Player.Client;
 using Guetta.Queue.Abstractions;
 using Guetta.Queue.Models;
-using Guetta.Queue.Requests;
 using MessagePack;
 using RedLockNet.SERedis;
 using StackExchange.Redis;
@@ -13,28 +12,31 @@ namespace Guetta.Queue.Services
 {
     public class QueueService
     {
-        public QueueService(RedLockFactory redLockFactory, IDatabase database, QueueStatusService queueStatusService, PlayerProxyService playerProxyService)
+        public QueueService(RedLockFactory redLockFactory, IDatabase database, QueueStatusService queueStatusService,
+            PlayerService playerService)
         {
             RedLockFactory = redLockFactory;
             Database = database;
             QueueStatusService = queueStatusService;
-            PlayerProxyService = playerProxyService;
+            PlayerService = playerService;
         }
 
         private RedLockFactory RedLockFactory { get; }
 
         private IDatabase Database { get; }
-        
+
         private QueueStatusService QueueStatusService { get; }
-        
-        private PlayerProxyService PlayerProxyService { get; }
 
-        private static string GetQueueName(ulong channelId) => $"{channelId}_queue";
-        private static string GetQueueCheckingStatusName(ulong channelId) => $"{channelId}_checking_status";
+        private PlayerService PlayerService { get; }
 
-        internal async Task CheckQueueStatus(ulong channelId)
+        private static string GetQueueName(string channelId) => $"{channelId}_queue";
+
+        private static string GetQueueCheckingStatusName(string channelId) => $"{channelId}_checking_status";
+
+        internal async Task CheckQueueStatus(string channelId)
         {
-            await using var @lock = await RedLockFactory.CreateLockAsync(GetQueueCheckingStatusName(channelId), TimeSpan.FromMinutes(1));
+            await using var @lock =
+                await RedLockFactory.CreateLockAsync(GetQueueCheckingStatusName(channelId), TimeSpan.FromMinutes(1));
 
             if (!@lock.IsAcquired)
                 return;
@@ -43,33 +45,30 @@ namespace Guetta.Queue.Services
 
             if (queueStatus == null || queueStatus.Status is QueueStatusEnum.Stopped or QueueStatusEnum.ReQueueing)
             {
-                var newPlaying = queueStatus is { Status: QueueStatusEnum.ReQueueing } ? queueStatus.CurrentlyPlaying : await Dequeue(channelId);
+                var newPlaying = queueStatus is { Status: QueueStatusEnum.ReQueueing }
+                    ? queueStatus.CurrentlyPlaying
+                    : await Dequeue(channelId);
 
                 if (newPlaying == null)
                 {
                     if (queueStatus is not { Status: QueueStatusEnum.Stopped })
                     {
-                        await QueueStatusService.UpdateQueueStatus(channelId, QueueStatusEnum.Stopped, null, null);
+                        await QueueStatusService.UpdateQueueStatus(channelId, QueueStatusEnum.Stopped, null);
                     }
 
                     return;
                 }
 
-                var playingId = await PlayerProxyService.Play(newPlaying.VoiceChannelId, newPlaying.VideoInformation, 1)
-                    .ContinueWith(t => t.IsCompletedSuccessfully ? t.Result : null);
-
-                if (!string.IsNullOrEmpty(playingId))
-                    await QueueStatusService.UpdateQueueStatus(channelId, QueueStatusEnum.Playing, newPlaying, playingId);
-                else
-                    await QueueStatusService.UpdateQueueStatus(channelId, QueueStatusEnum.ReQueueing, newPlaying, playingId);
+                PlayerService.EnqueueToPlay(newPlaying);
+                await QueueStatusService.UpdateQueueStatus(channelId, QueueStatusEnum.Playing, newPlaying);
             }
         }
 
-        private async Task<QueueItem> Dequeue(ulong channelId)
+        private async Task<QueueItem> Dequeue(string channelId)
         {
             var queueName = GetQueueName(channelId);
             await using var @lock = await RedLockFactory.CreateLockAsync(queueName, TimeSpan.FromSeconds(10));
-            
+
             if (!@lock.IsAcquired)
                 return null;
 
@@ -86,7 +85,7 @@ namespace Guetta.Queue.Services
             return MessagePackSerializer.Deserialize<QueueItem>(redisValue);
         }
 
-        public async Task<long?> Enqueue(ulong channelId, QueueItem queueItem)
+        public async Task<long?> Enqueue(string channelId, QueueItem queueItem)
         {
             var queueName = GetQueueName(channelId);
 
@@ -100,30 +99,37 @@ namespace Guetta.Queue.Services
 
             await @lock.DisposeAsync();
             _ = CheckQueueStatus(channelId);
-            
+
             return pushIndex;
         }
 
-        public async Task Skip(ulong channelId)
+        public async Task Next(string channelId, bool stop = true)
         {
             var queueName = GetQueueName(channelId);
 
             await using var @lock = await RedLockFactory.CreateLockAsync(queueName, TimeSpan.FromSeconds(10));
-            
+
             if (!@lock.IsAcquired)
                 return;
-            
-            await PlayerProxyService.Skip(channelId);
-            await QueueStatusService.UpdateQueueStatus(channelId, QueueStatusEnum.Stopped, null, null);
+
+            if (stop)
+            {
+                var status = await QueueStatusService.GetQueueStatus(channelId);
+
+                if (status.CurrentlyPlaying != null && status.Status == QueueStatusEnum.Playing)
+                    await PlayerService.EnqueueStop(channelId);
+            }
+
+            await QueueStatusService.UpdateQueueStatus(channelId, QueueStatusEnum.Stopped, null);
             await @lock.DisposeAsync();
             await CheckQueueStatus(channelId);
         }
 
-        public async IAsyncEnumerable<QueueItemWithIndex> GetQueueItems(ulong channelId)
+        public async IAsyncEnumerable<QueueItemWithIndex> GetQueueItems(string channelId)
         {
             var queueName = GetQueueName(channelId);
             await using var @lock = await RedLockFactory.CreateLockAsync(queueName, TimeSpan.FromSeconds(10));
-            
+
             if (!@lock.IsAcquired)
                 yield break;
 
@@ -143,7 +149,7 @@ namespace Guetta.Queue.Services
 
             var listValues = await Database.ListRangeAsync(queueName);
             var currentIndex = currentStatus?.CurrentlyPlaying != null ? 1 : 0;
-            
+
             foreach (var redisValue in listValues)
             {
                 var deserialized = MessagePackSerializer.Deserialize<QueueItem>(redisValue);
@@ -156,7 +162,7 @@ namespace Guetta.Queue.Services
                     RequestedByUser = deserialized.RequestedByUser,
                     VoiceChannelId = deserialized.VoiceChannelId
                 };
-                
+
                 currentIndex++;
             }
         }

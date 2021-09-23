@@ -19,6 +19,17 @@ spec:
         envFrom:
           - configMapRef:
               name: guetta-queue-envs
+        env:
+          - name: RABBIT_MQ_USER
+            valueFrom:
+              secretKeyRef:
+                name: user-guetta-user-credentials
+                key: username         
+          - name: RABBIT_MQ_PASS
+            valueFrom:
+              secretKeyRef:
+                name: user-guetta-user-credentials
+                key: password              
         ports:
         - containerPort: 80
         resources:
@@ -34,3 +45,4 @@ metadata:
 data:
   PLAYER_URL: "http://guetta-player-service.guetta"
   REDIS: "redis-service.guetta"
+  RABBIT_MQ_HOST: "rabbit-cluster.guetta"

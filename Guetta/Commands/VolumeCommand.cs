@@ -12,16 +12,16 @@ namespace Guetta.Commands
 {
     internal class VolumeCommand : IDiscordCommand
     {
-        public VolumeCommand(PlayerProxyService playerProxyService, LocalisationService localisationService, IDatabase database)
+        public VolumeCommand(LocalisationService localisationService, IDatabase database, PlayerService playerService)
         {
-            PlayerProxyService = playerProxyService;
             LocalisationService = localisationService;
             Database = database;
+            PlayerService = playerService;
         }
 
-        private PlayerProxyService PlayerProxyService { get; }
-
         private LocalisationService LocalisationService { get; }
+        
+        private PlayerService PlayerService { get; }
         
         private IDatabase Database { get; }
 
@@ -40,14 +40,8 @@ namespace Guetta.Commands
                 await message.Channel.TriggerTypingAsync();
 
                 var volume = newVolume / 100d;
-                var mensagem = await PlayerProxyService
-                    .SetVolume(discordMember.VoiceState.Channel.Id, volume)
-                    .ContinueWith(t => t.IsCompletedSuccessfully && t.Result);
-
-                if (mensagem)
-                    await Database.HashSetAsync(discordMember.VoiceState.Channel.Id.ToString(), "volume", volume);
-
-                await message.Channel.SendMessageAsync(mensagem ? "Volume alterado queridão" : "Deu ruim pra alterar o volume")
+                await PlayerService.EnqueueVolumeChange(discordMember.VoiceState.Channel.Id, volume);
+                await message.Channel.SendMessageAsync("Volume alterado queridão")
                     .DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
             else

@@ -1,0 +1,36 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: play-queue
+  namespace: guetta
+spec:
+  name: play
+  autoDelete: false
+  durable: true
+  rabbitmqClusterReference:
+    name: rabbit-cluster
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: player-queue
+  namespace: guetta
+spec:
+  name: player
+  autoDelete: false
+  durable: true
+  rabbitmqClusterReference:
+    name: rabbit-cluster
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: queue-command-queue
+  namespace: guetta
+spec:
+  name: queue_command
+  autoDelete: false
+  durable: true
+  rabbitmqClusterReference:
+    name: rabbit-cluster
+---

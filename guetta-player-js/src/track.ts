@@ -1,15 +1,16 @@
-import { AudioResource, createAudioResource, demuxProbe } from '@discordjs/voice';
-import { raw as ytdl } from 'youtube-dl-exec';
+import {AudioResource, createAudioResource, demuxProbe} from '@discordjs/voice';
+import {spawn} from 'child_process';
 
 /**
  * This is the data required to create a Track object
  */
 export interface TrackData {
-	url: string;
-	title: string;
-	onStart: () => void;
-	onFinish: () => void;
-	onError: (error: Error) => void;
+    url: string;
+    id: string;
+    title: string;
+    onStart: () => void;
+    onFinish: () => void;
+    onError: (error: Error) => void;
 }
 
 /**
@@ -22,86 +23,91 @@ export interface TrackData {
  * queue, it is converted into an AudioResource just in time for playback.
  */
 export class Track implements TrackData {
-	public readonly url: string;
-	public readonly title: string;
-	public readonly onStart: () => void;
-	public readonly onFinish: () => void;
-	public readonly onError: (error: Error) => void;
+    public readonly url: string;
+    public readonly title: string;
+    public readonly id: string;
+    public readonly onStart: () => void;
+    public readonly onFinish: () => void;
+    public readonly onError: (error: Error) => void;
 
-	private constructor({ url, title, onStart, onFinish, onError }: TrackData) {
-		this.url = url;
-		this.title = title;
-		this.onStart = onStart;
-		this.onFinish = onFinish;
-		this.onError = onError;
-	}
+    private constructor({url, title, onStart, onFinish, onError, id}: TrackData) {
+        this.url = url;
+        this.title = title;
+        this.onStart = onStart;
+        this.onFinish = onFinish;
+        this.onError = onError;
+        this.id = id;
+    }
 
-	/**
-	 * Creates an AudioResource from this Track.
-	 */
-	public createAudioResource(): Promise<AudioResource<Track>> {
-		return new Promise((resolve, reject) => {
-			const process = ytdl(
-				this.url,
-				{
-					o: '-',
-					q: '',
-					f: 'bestaudio[ext=webm+acodec=opus+asr=48000]/bestaudio',
-					r: '100K',
-				},
-				{ stdio: ['ignore', 'pipe', 'ignore'] },
-			);
-			if (!process.stdout) {
-				reject(new Error('No stdout'));
-				return;
-			}
-			const stream = process.stdout;
-			const onError = (error: Error) => {
-				if (!process.killed) process.kill();
-				stream.resume();
-				reject(error);
-			};
-			
-			process.once('close', () => {
-				this.onFinish();
-			})
+    /**
+     * Creates a Track from a video URL and lifecycle callback methods.
+     *
+     * @param url The URL of the video
+     * @param methods Lifecycle callbacks
+     * @returns The created Track
+     */
+    public static async from(url: string, id: string, title: string, methods: Pick<Track, 'onStart' | 'onFinish' | 'onError'>): Promise<Track> {
+        const wrappedMethods = {
+            onStart() {
+                methods.onStart();
+            },
+            onFinish() {
+                methods.onFinish();
+            },
+            onError(error: Error) {
+                methods.onError(error);
+            },
+        };
 
-			process
-				.once('spawn', () => {
-					this.onStart();
+        return new Track({
+            title,
+            url,
+            ...wrappedMethods,
+            id
+        });
+    }
 
-					demuxProbe(stream)
-						.then((probe) => resolve(createAudioResource(probe.stream, { metadata: this, inputType: probe.type, inlineVolume: true })))
-						.catch(onError);
-				})
-				.catch(onError);
-		});
-	}
+    /**
+     * Creates an AudioResource from this Track.
+     */
+    public createAudioResource(): Promise<AudioResource<Track>> {
+        return new Promise((resolve, reject) => {
+			const process = spawn('yt-dlp', [this.url, '-f', `bestaudio*[ext=webm][acodec=opus][asr=48000]/ba*[ext=m4a]`, '-r', '100K', '-o', '-']);
 
-	/**
-	 * Creates a Track from a video URL and lifecycle callback methods.
-	 *
-	 * @param url The URL of the video
-	 * @param methods Lifecycle callbacks
-	 * @returns The created Track
-	 */
-	public static async from(url: string, title: string, methods: Pick<Track, 'onStart' | 'onFinish' | 'onError'>): Promise<Track> {
-		const wrappedMethods = {
-			onStart() {
-				methods.onStart();
-			},
-			onFinish() {
-				methods.onFinish();
-			},
-			onError(error: Error) {
-				methods.onError(error);
-			},
-		};
+            if (!process.stdout) {
+                reject(new Error('No stdout'));
+                return;
+            }
 
-		return new Track({
-			title,
-			url,
-			...wrappedMethods,
-		});
-	}
+            const stream = process.stdout;
+            const onError = (error: Error) => {
+                if (!process.killed) process.kill();
+                stream.resume();
+                reject(error);
+            };
+
+            process.once('close', (code) => {
+                console.log(`child process exited with code ${code}`);
+                stream.destroy();
+                this.onFinish();
+            })
+
+            process.stderr.on('data', (data) => {
+                console.log(`sterr: ${data}`);
+            });
+
+            process
+                .once('spawn', () => {
+                    this.onStart();
+
+                    demuxProbe(stream)
+                        .then((probe) => resolve(createAudioResource(probe.stream, {
+                            metadata: this,
+                            inputType: probe.type,
+                            inlineVolume: true
+                        })))
+                        .catch(onError);
+                });
+        });
+    }
 }

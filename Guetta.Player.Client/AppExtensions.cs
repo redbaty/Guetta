@@ -1,5 +1,6 @@
 ﻿using System;
 using Guetta.Abstractions.Exceptions;
+using Guetta.App.RabbitMQ;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Guetta.Player.Client
@@ -8,11 +9,8 @@ namespace Guetta.Player.Client
     {
         public static void AddPlayerClient(this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddHttpClient<PlayerProxyService>(c =>
-            {
-                c.BaseAddress = new Uri(Environment.GetEnvironmentVariable("PLAYER_URL") ??
-                                        throw new MissingEnvironmentVariableException("PLAYER_URL"));
-            });
+            serviceCollection.AddRabbitConnection();
+            serviceCollection.AddTransient<PlayerService>();
         }
     }
 }

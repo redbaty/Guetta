@@ -8,7 +8,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "REDIS": "localhost",
-        "PLAYER_URL": "http://localhost:3000/"
+        "PLAYER_URL": "http://localhost:3000/",
+        "RABBIT_MQ_HOST": "localhost"
       }
     }
   }

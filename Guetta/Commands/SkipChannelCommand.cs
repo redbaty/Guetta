@@ -4,9 +4,7 @@ using DSharpPlus.Entities;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
-using Guetta.Player.Client;
 using Guetta.Queue.Client;
-using Guetta.Services;
 
 namespace Guetta.Commands
 {
@@ -31,9 +29,8 @@ namespace Guetta.Commands
                     .DeleteMessageAfter(TimeSpan.FromSeconds(5));
                 return;
             }
-            
-            
-            await QueueProxyService.Skip(discordMember.VoiceState.Channel.Id);
+
+            QueueProxyService.Skip(discordMember.VoiceState.Channel.Id);
             await LocalisationService.SendMessageAsync(message.Channel, "SongSkipped", message.Author.Mention)
                 .DeleteMessageAfter(TimeSpan.FromSeconds(15));
         }

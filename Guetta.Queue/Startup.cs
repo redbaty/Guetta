@@ -1,5 +1,7 @@
+using Guetta.App.RabbitMQ;
 using Guetta.App.Redis;
 using Guetta.Player.Client;
+using Guetta.Queue.Abstractions;
 using Guetta.Queue.Extensions;
 using Guetta.Queue.Services;
 using Microsoft.AspNetCore.Builder;
@@ -24,8 +26,14 @@ namespace Guetta.Queue
             services.AddPlayerClient();
             services.AddScoped<QueueService>();
             services.AddScoped<QueueStatusService>();
+            services.AddSingleton<RabbitQueueReader>();
+            services.AddSingleton<RabbitQueueCommandReader>();
             services.AddSingleton<PlayerEventSubscriberService>();
+            services.AddMessagePackRabbitQueue<QueueItem>("play");
+            services.AddJsonRabbitQueue<QueueRequest>("queue_command");
+
             services.Configure<RouteOptions>(c => c.LowercaseUrls = true);
+            services.AddRabbitConnection();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

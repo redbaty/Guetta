@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rabbit-cluster
+  namespace: guetta
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  labels:
+    name: rabbit-cluster
+spec:
+  rules:
+  - host: rabbit.guetta
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/web"
+        backend:
+          service:
+            name: rabbit-cluster
+            port: 
+              number: 15672
+      - pathType: Prefix
+        path: "/api"
+        backend:
+          service:
+            name: rabbit-cluster
+            port: 
+              number: 15692
