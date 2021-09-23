@@ -26,8 +26,7 @@ namespace Guetta.Queue.Services
                 throw new Exception("Queue service is null");
             }
 
-            var index = await queueService.Enqueue(message.VoiceChannelId, message); 
-            await queueService.Enqueue(message.VoiceChannelId, message);
+            var index = await queueService.Enqueue(message.VoiceChannelId, message);
             return index is >= 0;
         }
     }
