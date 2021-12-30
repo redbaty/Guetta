@@ -59,6 +59,11 @@ namespace Guetta.Localisation
                     {
                         Code = "SongDownloading",
                         Id = 8
+                    },
+                    new LanguageItem
+                    {
+                        Code = "PlaylistQueued",
+                        Id = 9
                     }
                 );
             });
@@ -130,6 +135,12 @@ namespace Guetta.Localisation
                         LanguageId = 1,
                         ItemId = 8,
                         Value = "Downloading song..."
+                    },
+                    new LanguageItemEntry
+                    {
+                        LanguageId = 1,
+                        ItemId = 9,
+                        Value = "The playlist {1} has been enqueued by {1}"
                     }
                 );
             });

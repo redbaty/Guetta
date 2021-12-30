@@ -8,13 +8,15 @@ using Guetta.Localisation;
 using Guetta.Queue.Client;
 using Microsoft.Extensions.Logging;
 using YoutubeExplode;
+using YoutubeExplode.Playlists;
 using YoutubeExplode.Videos;
 
 namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(LocalisationService localisationService, ILogger<PlayChannelCommand> logger, YoutubeClient youtubeClient, QueueProxyService queueProxyService)
+        public PlayChannelCommand(LocalisationService localisationService, ILogger<PlayChannelCommand> logger,
+            YoutubeClient youtubeClient, QueueProxyService queueProxyService)
         {
             LocalisationService = localisationService;
             Logger = logger;
@@ -55,12 +57,35 @@ namespace Guetta.Commands
 
             if (Uri.TryCreate(searchTerm, UriKind.Absolute, out _))
             {
-                var video = await YoutubeClient.Videos.GetAsync(VideoId.Parse(searchTerm));
-                videoInformation = new VideoInformation
+                if (PlaylistId.TryParse(searchTerm) is { } playlistId)
                 {
-                    Title = video.Title,
-                    Url = video.Url
-                };
+                    var playlist = await YoutubeClient.Playlists.GetAsync(playlistId);
+
+                    await foreach (var video in YoutubeClient.Playlists.GetVideosAsync(playlistId).Take(10))
+                    {
+                        QueueProxyService.Enqueue(discordMember.VoiceState.Channel.Id, message.ChannelId,
+                            message.Author.Mention, new VideoInformation
+                            {
+                                Title = video.Title,
+                                Url = video.Url
+                            });
+                    }
+
+                    await LocalisationService
+                        .SendMessageAsync(message.Channel, "PlaylistQueued", message.Author.Mention, playlist.Title)
+                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                    
+                    return;
+                }
+                else
+                {
+                    var video = await YoutubeClient.Videos.GetAsync(VideoId.Parse(searchTerm));
+                    videoInformation = new VideoInformation
+                    {
+                        Title = video.Title,
+                        Url = video.Url
+                    };
+                }
             }
             else
             {
@@ -78,7 +103,8 @@ namespace Guetta.Commands
             {
                 Logger.LogInformation("Video information for queued gathered. {@VideoInformation}", videoInformation);
 
-                QueueProxyService.Enqueue(discordMember.VoiceState.Channel.Id, message.ChannelId, message.Author.Mention, videoInformation);
+                QueueProxyService.Enqueue(discordMember.VoiceState.Channel.Id, message.ChannelId,
+                    message.Author.Mention, videoInformation);
 
                 await LocalisationService
                     .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
