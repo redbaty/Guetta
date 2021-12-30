@@ -1,10 +1,9 @@
-import Fastify, {FastifyInstance} from 'fastify'
-import {Client, Intents} from 'discord.js';
-import {AudioPlayer, AudioResource, generateDependencyReport, VoiceConnection} from '@discordjs/voice';
-import {Track} from './track.js';
+import Fastify, { FastifyInstance } from 'fastify'
+import { Client, Intents } from 'discord.js';
+import { generateDependencyReport } from '@discordjs/voice';
 import Redis from 'ioredis';
 import * as Amqp from "amqp-ts";
-import {AudioService, PlayRequest} from "./audio-service.js";
+import { AudioService, PlayRequest } from "./audio-service.js";
 
 
 
@@ -31,7 +30,7 @@ const audioService = new AudioService(redis, subRedis, client);
 
 client.once('ready', async () => {
     console.log('Ready!');
-    
+
     const connection = new Amqp.Connection(`amqp://${process.env.RABBIT_MQ_USER}:${process.env.RABBIT_MQ_PASS}@${process.env.RABBIT_MQ_HOST}:5672`);
     const queue = connection.declareQueue("player");
     const queueManager = connection.declareQueue("queue_command");
@@ -45,15 +44,15 @@ client.once('ready', async () => {
             .then(t => {
                 if (t) {
                     m.ack();
-                    queueManager.publish({voiceChannelId: playRequest.voiceChannelId, type: 1})
+                    queueManager.publish({ voiceChannelId: playRequest.voiceChannelId, type: 1 })
                 } else {
                     m.nack(undefined, true);
                 }
             })
             .catch(t => {
-            m.nack(undefined, true);
-        })
-    }, {manualAck: true})
+                m.nack(undefined, true);
+            })
+    }, { manualAck: true })
 
     try {
         await server.listen(process.env.PORT || 3000, '0.0.0.0')

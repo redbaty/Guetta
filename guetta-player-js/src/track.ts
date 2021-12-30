@@ -90,10 +90,6 @@ export class Track implements TrackData {
                 console.log(`child process exited with code ${code}`);
                 stream.destroy();
                 this.onFinish();
-            })
-
-            process.stderr.on('data', (data) => {
-                console.log(`sterr: ${data}`);
             });
 
             process

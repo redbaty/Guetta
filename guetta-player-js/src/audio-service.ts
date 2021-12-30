@@ -2,7 +2,7 @@ import {Redis} from "ioredis";
 import {Client, VoiceChannel} from "discord.js";
 import {
     AudioPlayerStatus,
-    createAudioPlayer,
+    createAudioPlayer, DiscordGatewayAdapterCreator,
     entersState,
     joinVoiceChannel,
     NoSubscriberBehavior,
@@ -28,7 +28,7 @@ export class AudioService {
                 const connection = joinVoiceChannel({
                     channelId: channel.id,
                     guildId: channel.guild.id,
-                    adapterCreator: channel.guild.voiceAdapterCreator,
+                    adapterCreator: channel.guild.voiceAdapterCreator as DiscordGatewayAdapterCreator,
                 });
 
                 console.log(`Going to play video: ${request.videoInformation.url}`);
@@ -69,10 +69,12 @@ export class AudioService {
                     if(!err){
                         this.subConnection.on("message", (channel, message) => {
                             if(channel.endsWith(':volume')) {
+                                console.log(`Altering volume to: ${message}`)
                                 resource.volume?.setVolume(+message);
                             }
 
                             if(channel.endsWith(':stop')){
+                                console.log('Stopping')
                                 player.stop();
                             }
                         });
