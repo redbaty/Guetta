@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Guetta.Abstractions;
@@ -7,23 +8,26 @@ using Microsoft.Extensions.Logging;
 
 namespace Guetta.App
 {
-    public class QueueService
+    public class GuildQueue
     {
-        public QueueService(ILogger<QueueService> logger,
-            LocalisationService localisationService, PlayingService playingService)
+        public GuildQueue(ILogger<GuildQueue> logger,
+            LocalisationService localisationService, Voice voice, ulong guildId)
         {
             Logger = logger;
             LocalisationService = localisationService;
-            PlayingService = playingService;
+            Voice = voice;
+            GuildId = guildId;
         }
+
+        private ulong GuildId { get; }
 
         private Queue<QueueItem> Queue { get; } = new();
 
-        private ILogger<QueueService> Logger { get; }
+        private ILogger<GuildQueue> Logger { get; }
 
         private Task LoopQueue { get; set; }
-        
-        private PlayingService PlayingService { get; }
+
+        private Voice Voice { get; }
 
         private CancellationTokenSource CancellationTokenSource { get; set; }
 
@@ -55,14 +59,13 @@ namespace Guetta.App
                     queueItem.CurrentQueueIndex = 0;
                     ReOrderQueue();
 
-                    Logger.LogInformation("Playing {@Url} requested by {@User}", queueItem.YoutubeDlInput,
-                        queueItem.User.Username);
+                    Logger.LogInformation("Playing {@Title} requested by {@User}", queueItem.VideoInformation.Title, queueItem.User.Username);
 
                     CancellationTokenSource?.Dispose();
                     CancellationTokenSource = new CancellationTokenSource();
 
                     queueItem.Playing = true;
-                    await PlayingService.Play(queueItem, CancellationTokenSource.Token);
+                    await Voice.Play(queueItem, CancellationTokenSource.Token);
                     queueItem.Playing = false;
                 }
 
@@ -72,14 +75,14 @@ namespace Guetta.App
 
         public IEnumerable<QueueItem> GetQueueItems()
         {
-            foreach (var queueItem in Queue) yield return queueItem;
+            foreach (var queueItem in Queue.OrderBy(i => i.CurrentQueueIndex)) yield return queueItem;
 
             if (CurrentItem != null) yield return CurrentItem;
         }
 
         public bool CanPlay()
         {
-            return PlayingService.AudioClient is { };
+            return Voice.AudioClient is { };
         }
 
         public bool CanSkip()

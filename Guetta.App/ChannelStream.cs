@@ -1,19 +1,18 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
-using DSharpPlus.VoiceNext;
 
 namespace Guetta.App
 {
-    public class VoiceTransmitSinkStream : Stream
+    public class ChannelStream : Stream
     {
-        public VoiceTransmitSinkStream(VoiceTransmitSink sink)
-        {
-            Sink = sink;
-        }
+        private Channel<byte[]> UnderlyingChannel { get; } = Channel.CreateUnbounded<byte[]>();
 
-        private VoiceTransmitSink Sink { get; }
+        private ChannelWriter<byte[]> Writer => UnderlyingChannel.Writer;
+
+        public ChannelReader<byte[]> Reader => UnderlyingChannel.Reader;
 
         public override bool CanRead => false;
         public override bool CanSeek => false;
@@ -21,13 +20,13 @@ namespace Guetta.App
         public override long Length => 0;
         public override long Position { get; set; }
 
-        public override void Flush()
+        public void Complete()
         {
+            Writer.Complete();
         }
 
-        public override Task FlushAsync(CancellationToken cancellationToken)
+        public override void Flush()
         {
-            return Sink.FlushAsync(cancellationToken);
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -50,9 +49,14 @@ namespace Guetta.App
             throw new NotImplementedException();
         }
 
-        public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
         {
-            await Sink.WriteAsync(buffer.AsMemory(offset, count), cancellationToken);
+            return Writer.WriteAsync(buffer.ToArray(), cancellationToken);
+        }
+
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            return Writer.WriteAsync(buffer[offset..count], cancellationToken).AsTask();
         }
     }
 }

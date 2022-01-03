@@ -1,4 +1,6 @@
-﻿namespace Guetta.Localisation
+﻿using System.Collections.Generic;
+
+namespace Guetta.Localisation
 {
     public class Language
     {
@@ -7,5 +9,7 @@
         public string ShortName { get; set; }
 
         public string LongName { get; set; }
+        
+        public ICollection<LanguageItemEntry> LanguageItems { get; set; }
     }
 }

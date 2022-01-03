@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using DSharpPlus.Entities;
 using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
@@ -9,13 +10,16 @@ using Guetta.Localisation;
 
 namespace Guetta.App
 {
-    public class PlayingService
+    public class Voice
     {
-        public PlayingService(YoutubeDlService youtubeDlService, LocalisationService localisationService)
+        public Voice(YoutubeDlService youtubeDlService, LocalisationService localisationService, ulong guildId)
         {
             YoutubeDlService = youtubeDlService;
             LocalisationService = localisationService;
+            GuildId = guildId;
         }
+        
+        private ulong GuildId { get; }
 
         private QueueItem CurrentItem { get; set; }
         
@@ -37,7 +41,13 @@ namespace Guetta.App
             return Task.CompletedTask;
         }
         
-        public void SetAudioClient(VoiceNextConnection audioClient)
+        public async Task Join(DiscordChannel voiceChannel)
+        {
+            var audioClient = await voiceChannel.ConnectAsync();
+            SetAudioClient(audioClient);
+        }
+
+        private void SetAudioClient(VoiceNextConnection audioClient)
         {
             AudioClient?.Dispose();
             AudioClient = audioClient;
@@ -50,16 +60,13 @@ namespace Guetta.App
             
             try
             {
-                await LocalisationService.SendMessageAsync(CurrentItem.Channel, "SongDownloading",
-                        CurrentItem.VideoInformation.Title, CurrentItem.User.Mention)
-                    .DeleteMessageAfter(TimeSpan.FromSeconds(15));
                 await CurrentItem.Channel.TriggerTypingAsync();
                 
                 await LocalisationService.SendMessageAsync(CurrentItem.Channel, "SongPlaying",
                         CurrentItem.VideoInformation.Title, CurrentItem.User.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
                 
-                await YoutubeDlService.SendToAudioSink(CurrentItem.YoutubeDlInput, CurrentDiscordSink, cancellationToken);
+                await YoutubeDlService.SendToAudioSink(CurrentItem.VideoInformation.Url, CurrentDiscordSink, cancellationToken);
             }
             finally
             {

@@ -9,6 +9,7 @@ namespace Guetta.Localisation
         {
             serviceCollection.AddSingleton<LocalisationService>();
             serviceCollection.AddDbContext<LocalisationContext>(e => { e.UseInMemoryDatabase("default"); });
+            serviceCollection.AddLocalization();
         }
     }
 }

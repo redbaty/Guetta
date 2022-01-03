@@ -11,21 +11,29 @@ namespace Guetta.Commands
 {
     internal class QueueCommand : IDiscordCommand
     {
-        public QueueCommand(QueueService queueService, LocalisationService localisationService)
+        public QueueCommand(LocalisationService localisationService, GuildContextManager guildContextManager)
         {
-            QueueService = queueService;
             LocalisationService = localisationService;
+            GuildContextManager = guildContextManager;
         }
 
-        private QueueService QueueService { get; }
+        private GuildContextManager GuildContextManager { get; }
         
         private LocalisationService LocalisationService { get; }
 
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
+            if (!message.Channel.GuildId.HasValue)
+            {
+                await message.Channel.SendMessageAsync("Invalid guild ID in channel");
+                return;
+            }
+
+            var guildContext = GuildContextManager.GetOrCreate(message.Channel.GuildId.Value);
+
             var queueMessage = "";
 
-            foreach (var queueItem in QueueService.GetQueueItems().OrderBy(i => i.CurrentQueueIndex))
+            foreach (var queueItem in guildContext.GuildQueue.GetQueueItems().OrderBy(i => i.CurrentQueueIndex))
             {
                 queueMessage += $"[{queueItem.CurrentQueueIndex + 1}] {queueItem.VideoInformation.Title} (Queued by: {queueItem.User.Mention}){Environment.NewLine}";
             }

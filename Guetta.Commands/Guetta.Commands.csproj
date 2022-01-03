@@ -8,4 +8,8 @@
       <ProjectReference Include="..\Guetta.App\Guetta.App.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="System.Linq.Async" Version="5.1.0" />
+    </ItemGroup>
+
 </Project>

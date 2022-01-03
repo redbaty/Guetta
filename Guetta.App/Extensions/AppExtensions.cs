@@ -8,9 +8,7 @@ namespace Guetta.App.Extensions
         {
             serviceCollection.AddSingleton<SocketClientEventsService>();
             serviceCollection.AddSingleton<CommandSolverService>();
-            serviceCollection.AddSingleton<QueueService>();
-            serviceCollection.AddSingleton<PlayingService>();
-            serviceCollection.AddSingleton<AudioChannelService>();
+            serviceCollection.AddSingleton<GuildContextManager>();
             serviceCollection.AddTransient<YoutubeDlService>();
         }
     }

@@ -12,18 +12,14 @@ namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(QueueService queueService, AudioChannelService audioChannelService,
-            YoutubeDlService youtubeDlService, LocalisationService localisationService)
+        public PlayChannelCommand(YoutubeDlService youtubeDlService, LocalisationService localisationService, GuildContextManager guildContextManager)
         {
-            QueueService = queueService;
-            AudioChannelService = audioChannelService;
             YoutubeDlService = youtubeDlService;
             LocalisationService = localisationService;
+            GuildContextManager = guildContextManager;
         }
 
-        private QueueService QueueService { get; }
-
-        private AudioChannelService AudioChannelService { get; }
+        private GuildContextManager GuildContextManager { get; }
 
         private YoutubeDlService YoutubeDlService { get; }
 
@@ -39,11 +35,20 @@ namespace Guetta.Commands
                 return;
             }
 
-            if (!QueueService.CanPlay())
+            if (!message.Channel.GuildId.HasValue)
+            {
+                await message.Channel.SendMessageAsync("Invalid guild ID in channel");
+                return;
+            }
+
+            var guildContext = GuildContextManager.GetOrCreate(message.Channel.GuildId.Value);
+            var queue = guildContext.GuildQueue;
+
+            if (!queue.CanPlay())
             {
                 if (message.Author is DiscordMember { VoiceState: { Channel: { } } } discordMember)
                 {
-                    await AudioChannelService.Join(discordMember.VoiceState.Channel);
+                    await guildContext.Voice.Join(discordMember.VoiceState.Channel);
                 }
                 else
                 {
@@ -56,31 +61,29 @@ namespace Guetta.Commands
 
             await message.Channel.TriggerTypingAsync();
             var url = arguments.Last();
-            string input;
-
-
-            if (Uri.TryCreate(url, UriKind.Absolute, out _))
+            var videoFound = false;
+            
+            
+            await foreach (var videoInformation in YoutubeDlService.GetVideoInformation(url, CancellationToken.None))
             {
-                input = url;
+                videoFound = true;
+                
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                
+                queue.Enqueue(new QueueItem
+                {
+                    User = message.Author,
+                    Channel = message.Channel,
+                    VideoInformation = videoInformation
+                });
             }
-            else
+
+            if (!videoFound)
             {
-                input = $"ytsearch:{message.Content}";
+                
             }
-
-            var videoInformation = await YoutubeDlService.GetVideoInformation(input, CancellationToken.None);
-
-            await LocalisationService
-                .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
-                .DeleteMessageAfter(TimeSpan.FromSeconds(5));
-
-            QueueService.Enqueue(new QueueItem
-            {
-                User = message.Author,
-                Channel = message.Channel,
-                YoutubeDlInput = input,
-                VideoInformation = videoInformation
-            });
         }
     }
 }

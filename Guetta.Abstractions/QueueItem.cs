@@ -7,9 +7,7 @@ namespace Guetta.Abstractions
         public DiscordUser User { get; init; }
 
         public DiscordChannel Channel { get; init; }
-
-        public string YoutubeDlInput { get; init; }
-
+        
         public int CurrentQueueIndex { get; set; }
 
         public bool Playing { get; set; }

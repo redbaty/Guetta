@@ -9,19 +9,19 @@ namespace Guetta.Commands
 {
     internal class VolumeCommand : IDiscordCommand
     {
-        public VolumeCommand(PlayingService playingService)
+        public VolumeCommand(Voice voice)
         {
-            PlayingService = playingService;
+            Voice = voice;
         }
 
-        private PlayingService PlayingService { get; }
+        private Voice Voice { get; }
         
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
             if (int.TryParse(arguments[0], out var volume))
             {
                 await message.Channel.TriggerTypingAsync();
-                await PlayingService.ChangeVolume(volume / 100f);
+                await Voice.ChangeVolume(volume / 100f);
                 await message.Channel.SendMessageAsync("Volume alterado queridão").DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
         }

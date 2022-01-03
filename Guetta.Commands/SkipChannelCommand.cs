@@ -10,26 +10,26 @@ namespace Guetta.Commands
 {
     internal class SkipChannelCommand : IDiscordCommand
     {
-        public SkipChannelCommand(QueueService queueService, LocalisationService localisationService)
+        public SkipChannelCommand(GuildQueue guildQueue, LocalisationService localisationService)
         {
-            QueueService = queueService;
+            GuildQueue = guildQueue;
             LocalisationService = localisationService;
         }
 
-        private QueueService QueueService { get; }
+        private GuildQueue GuildQueue { get; }
         
         private LocalisationService LocalisationService { get; }
         
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
-            if (!QueueService.CanSkip())
+            if (!GuildQueue.CanSkip())
             {
                 await LocalisationService.SendMessageAsync(message.Channel, "CantSkip", message.Author.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
                 return;
             }
             
-            QueueService.Skip();
+            GuildQueue.Skip();
             await LocalisationService.SendMessageAsync(message.Channel, "SongSkipped", message.Author.Mention)
                 .DeleteMessageAfter(TimeSpan.FromSeconds(15));
         }

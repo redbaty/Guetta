@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace Guetta.Localisation
 {
@@ -18,47 +19,39 @@ namespace Guetta.Localisation
         {
             modelBuilder.Entity<LanguageItem>(e =>
             {
-                e.HasIndex(i => i.Code).IsUnique();
+                e.HasKey(i => i.Code);
 
                 e.HasData(new LanguageItem
                     {
-                        Code = "InvalidArgument",
-                        Id = 1
+                        Code = "InvalidArgument"
                     },
                     new LanguageItem
                     {
-                        Code = "SongQueued",
-                        Id = 2
+                        Code = "SongQueued"
                     },
                     new LanguageItem
                     {
-                        Code = "SongPlaying",
-                        Id = 3
+                        Code = "SongPlaying"
                     },
                     new LanguageItem
                     {
-                        Code = "SongSkipped",
-                        Id = 4
+                        Code = "SongSkipped"
                     },
                     new LanguageItem
                     {
-                        Code = "NotInChannel",
-                        Id = 5
+                        Code = "NotInChannel"
                     },
                     new LanguageItem
                     {
-                        Code = "NoSongsInQueue",
-                        Id = 6
+                        Code = "NoSongsInQueue"
                     },
                     new LanguageItem
                     {
-                        Code = "CantSkip",
-                        Id = 7
+                        Code = "CantSkip"
                     },
                     new LanguageItem
                     {
-                        Code = "SongDownloading",
-                        Id = 8
+                        Code = "SongDownloading"
                     }
                 );
             });
@@ -70,7 +63,50 @@ namespace Guetta.Localisation
                     {
                         Id = 1,
                         ShortName = "en",
-                        LongName = "English"
+                        LongName = "English",
+                        LanguageItems = new List<LanguageItemEntry>
+                        {
+                            new()
+                            {
+                                ItemId = "InvalidArgument",
+                                Value = "Invalid arguments"
+                            },
+                            new()
+                            {
+                                ItemId = "SongQueued",
+                                Value = "The song has been queued"
+                            },
+                            new()
+                            {
+                                ItemId = "SongPlaying",
+                                Value = "Now playing {0}, queued by {1}"
+                            },
+                            new()
+                            {
+                                ItemId = "SongSkipped",
+                                Value = "Skipping song {0}"
+                            },
+                            new()
+                            {
+                                ItemId = "NotInChannel",
+                                Value = "{0} you're not in a voice channel"
+                            },
+                            new()
+                            {
+                                ItemId = "NoSongsInQueue",
+                                Value = "No songs in queue"
+                            },
+                            new()
+                            {
+                                ItemId = "CantSkip",
+                                Value = "Can't skip songs"
+                            },
+                            new()
+                            {
+                                ItemId = "SongDownloading",
+                                Value = "Downloading song..."
+                            }
+                        }
                     },
                     new Language
                     {
@@ -78,61 +114,12 @@ namespace Guetta.Localisation
                         ShortName = "ptBR",
                         LongName = "Português Brasileiro"
                     });
+
+                e.HasMany(i => i.LanguageItems)
+                    .WithOne(i => i.Language);
             });
 
-            modelBuilder.Entity<LanguageItemEntry>(e =>
-            {
-                e.HasKey(i => new {i.LanguageId, i.ItemId});
-                e.HasData(new LanguageItemEntry
-                    {
-                        LanguageId = 1,
-                        ItemId = 1,
-                        Value = "Invalid arguments"
-                    },
-                    new LanguageItemEntry
-                    {
-                        LanguageId = 1,
-                        ItemId = 2,
-                        Value = "The song has been queued"
-                    },
-                    new LanguageItemEntry
-                    {
-                        LanguageId = 1,
-                        ItemId = 3,
-                        Value = "Now playing {0}, queued by {1}"
-                    },
-                    new LanguageItemEntry
-                    {
-                        LanguageId = 1,
-                        ItemId = 4,
-                        Value = "Skipping song {0}"
-                    },
-                    new LanguageItemEntry
-                    {
-                        LanguageId = 1,
-                        ItemId = 5,
-                        Value = "{0} you're not in a voice channel"
-                    },
-                    new LanguageItemEntry
-                    {
-                        LanguageId = 1,
-                        ItemId = 6,
-                        Value = "No songs in queue"
-                    },
-                    new LanguageItemEntry
-                    {
-                        LanguageId = 1,
-                        ItemId = 7,
-                        Value = "Can't skip songs"
-                    },
-                    new LanguageItemEntry
-                    {
-                        LanguageId = 1,
-                        ItemId = 8,
-                        Value = "Downloading song..."
-                    }
-                );
-            });
+            modelBuilder.Entity<LanguageItemEntry>(e => { e.HasKey(i => new { i.LanguageId, i.ItemId }); });
         }
     }
 }
