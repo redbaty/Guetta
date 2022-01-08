@@ -1,32 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using Guetta.Localisation.Resources;
 using Microsoft.Extensions.Options;
 
 namespace Guetta.Localisation
 {
     public class LocalisationService
     {
-        private readonly IOptions<LocalisationOptions> _options;
-
         public LocalisationService(IOptions<LocalisationOptions> options)
         {
-            _options = options;
+            Language.Culture = new CultureInfo(options.Value.Language);
+            
+            Items = typeof(Language)
+                .GetProperties(BindingFlags.NonPublic | BindingFlags.Static)
+                .Where(i => i.CanRead && !i.CanWrite && i.PropertyType == typeof(string))
+                .Select(i => new { i.Name, Valor = i.GetValue(null)?.ToString() })
+                .Where(i => i.Valor != null)
+                .ToDictionary(i => i.Name, i => i.Valor!);
         }
 
-        private IOptions<LocalisationOptions> Options => _options;
-
-        internal static Dictionary<string, Dictionary<string, string>> Items { get; } = new();
-
-        private const string DefaultLanguage = "en";
-        
+        private Dictionary<string, string> Items { get; }
 
         public async Task<DiscordMessage> SendMessageAsync(DiscordChannel channel, string code,
             params object[] parameters)
         {
-            var messageTemplate = //Items.GetValueOrDefault(Options.Value.Language)?.GetValueOrDefault(code) ??
-                Items[DefaultLanguage].GetValueOrDefault(code);
+            var messageTemplate = Items.GetValueOrDefault(code);
 
             if (string.IsNullOrEmpty(messageTemplate))
             {

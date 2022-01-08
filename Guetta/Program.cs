@@ -44,7 +44,6 @@ namespace Guetta
             serviceCollection.AddTransient<YoutubeClient>();
             
             var serviceProvider = serviceCollection.BuildServiceProvider();
-            await serviceProvider.ValidateAndConfigureLocalisation();
 
             var socketClientEventsService = serviceProvider.GetService<SocketClientEventsService>();
             socketClientEventsService!.Subscribe(discordSocketClient);
