@@ -9,19 +9,28 @@ namespace Guetta.Commands
 {
     internal class VolumeCommand : IDiscordCommand
     {
-        public VolumeCommand(Voice voice)
+        public VolumeCommand(GuildContextManager guildContextManager)
         {
-            Voice = voice;
+            GuildContextManager = guildContextManager;
         }
 
-        private Voice Voice { get; }
+        private GuildContextManager GuildContextManager { get; }
         
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
-            if (int.TryParse(arguments[0], out var volume))
+            if (!message.Channel.GuildId.HasValue)
+            {
+                await message.Channel.SendMessageAsync("Invalid guild ID in channel");
+                return;
+            }
+
+            var guildContext = GuildContextManager.GetOrCreate(message.Channel.GuildId.Value);
+            var voice = guildContext.Voice;
+            
+            if (int.TryParse(arguments[0], out var volume) && voice != null)
             {
                 await message.Channel.TriggerTypingAsync();
-                await Voice.ChangeVolume(volume / 100f);
+                await voice.ChangeVolume(volume / 100f);
                 await message.Channel.SendMessageAsync("Volume alterado queridão").DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
         }
