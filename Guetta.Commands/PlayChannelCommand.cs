@@ -60,8 +60,8 @@ namespace Guetta.Commands
             }
 
             await message.Channel.TriggerTypingAsync();
-            var url = arguments.Last();
-            var videoFound = false;
+            var url = arguments.Aggregate((x, y) => $"{x} {y}");
+            var videoFound = false; 
             
             
             await foreach (var videoInformation in YoutubeDlService.GetVideoInformation(url, CancellationToken.None))
