@@ -20,7 +20,8 @@ public class GuildContextManager
     private Voice BuildVoice(ulong guildId) => new(
         ServiceProvider.GetService<YoutubeDlService>(),
         ServiceProvider.GetService<LocalisationService>(),
-        guildId
+        guildId,
+        ServiceProvider.GetService<ILogger<Voice>>()
     );
 
     private GuildQueue BuildQueue(ulong guildId, Voice voice) => new(
@@ -45,21 +46,5 @@ public class GuildContextManager
         }
 
         return ContextByGuild[guildId];
-    }
-}
-
-public class GuildContext
-{
-    public ulong Id { get; }
-
-    public GuildQueue GuildQueue { get; }
-
-    public Voice Voice { get; }
-
-    public GuildContext(ulong id, GuildQueue guildQueue, Voice voice)
-    {
-        Id = id;
-        GuildQueue = guildQueue;
-        Voice = voice;
     }
 }
