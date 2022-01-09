@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
@@ -11,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Guetta.App
 {
-    public class Voice
+    public class Voice : IGuildItem
     {
         public Voice(YoutubeDlService youtubeDlService, LocalisationService localisationService, ulong guildId, ILogger<Voice> logger)
         {
@@ -21,7 +20,7 @@ namespace Guetta.App
             Logger = logger;
         }
 
-        private ulong GuildId { get; }
+        public ulong GuildId { get; }
 
         internal QueueItem CurrentItem { get; set; }
 
@@ -30,10 +29,6 @@ namespace Guetta.App
         private YoutubeDlService YoutubeDlService { get; }
 
         internal VoiceNextConnection AudioClient { get; private set; }
-
-        private byte[] CurrentYoutubeAudioStream { get; set; }
-
-        private byte[] CurrentFfmpegAudioStream { get; set; }
 
         private LocalisationService LocalisationService { get; }
 
@@ -80,8 +75,6 @@ namespace Guetta.App
             finally
             {
                 await CurrentDiscordSink.FlushAsync(CancellationToken.None);
-                CurrentYoutubeAudioStream = null;
-                CurrentFfmpegAudioStream = null;
                 CurrentItem = null;
             }
         }

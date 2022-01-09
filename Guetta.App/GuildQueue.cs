@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Guetta.App
 {
-    public class GuildQueue
+    public class GuildQueue : IGuildItem
     {
         public GuildQueue(ILogger<GuildQueue> logger,
             LocalisationService localisationService, Voice voice, ulong guildId)
@@ -19,7 +19,7 @@ namespace Guetta.App
             GuildId = guildId;
         }
 
-        private ulong GuildId { get; }
+        public ulong GuildId { get; }
 
         private Queue<QueueItem> Queue { get; } = new();
 
