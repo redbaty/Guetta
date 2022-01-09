@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace Guetta.App
 
         private ulong GuildId { get; }
 
-        private QueueItem CurrentItem { get; set; }
+        internal QueueItem CurrentItem { get; set; }
 
         private VoiceTransmitSink CurrentDiscordSink { get; set; }
 

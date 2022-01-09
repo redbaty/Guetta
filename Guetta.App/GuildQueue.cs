@@ -31,7 +31,7 @@ namespace Guetta.App
 
         private CancellationTokenSource CancellationTokenSource { get; set; }
 
-        private QueueItem CurrentItem { get; set; }
+        private QueueItem CurrentItem => Voice.CurrentItem;
 
         private LocalisationService LocalisationService { get; }
 
@@ -55,7 +55,6 @@ namespace Guetta.App
             {
                 while (Queue.TryDequeue(out var queueItem))
                 {
-                    CurrentItem = queueItem;
                     queueItem.CurrentQueueIndex = 0;
                     ReOrderQueue();
 
