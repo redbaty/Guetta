@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,7 +74,8 @@ namespace Guetta.App
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Failed to play something");
+                if (!cancellationToken.IsCancellationRequested)
+                    Logger.LogError(ex, "Failed to play something");
             }
             finally
             {
