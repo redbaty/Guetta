@@ -53,6 +53,18 @@ namespace Guetta.App
                     };
                 }
             }
+            else if(!string.IsNullOrEmpty(input))
+            {
+                await foreach (var searchResult in YoutubeClient.Search.GetVideosAsync(input, cancellationToken))
+                {
+                    yield return new VideoInformation
+                    {
+                        Title = searchResult.Title,
+                        Url = searchResult.Url
+                    };
+                    yield break;
+                }
+            }
         }
 
         public async Task SendToAudioSink(string input, VoiceTransmitSink currentDiscordStream,
