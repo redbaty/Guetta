@@ -61,17 +61,13 @@ namespace Guetta.Commands
 
             await message.Channel.TriggerTypingAsync();
             var url = arguments.Aggregate((x, y) => $"{x} {y}");
-            var videoFound = false; 
-            
-            
+            var videosFound = 0;
+
+
             await foreach (var videoInformation in YoutubeDlService.GetVideoInformation(url, CancellationToken.None))
             {
-                videoFound = true;
-                
-                await LocalisationService
-                    .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, videoInformation.Title)
-                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
-                
+                videosFound++;
+
                 queue.Enqueue(new QueueItem
                 {
                     User = message.Author,
@@ -80,9 +76,17 @@ namespace Guetta.Commands
                 });
             }
 
-            if (!videoFound)
+            if (videosFound > 0)
             {
-                
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, string.Empty)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+            }
+            else
+            {
+                await LocalisationService
+                    .SendMessageAsync(message.Channel, "SongNotFound", message.Author.Mention, string.Empty)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
         }
     }

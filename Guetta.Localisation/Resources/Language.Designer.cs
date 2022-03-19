@@ -61,7 +61,7 @@ namespace Guetta.Localisation.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can&apos;t skip songs.
+        ///   Looks up a localized string similar to No song is currently playing.
         /// </summary>
         internal static string CantSkip {
             get {
@@ -111,6 +111,15 @@ namespace Guetta.Localisation.Resources {
         internal static string SongDownloading {
             get {
                 return ResourceManager.GetString("SongDownloading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No song was found on that URL.
+        /// </summary>
+        internal static string SongNotFound {
+            get {
+                return ResourceManager.GetString("SongNotFound", resourceCulture);
             }
         }
         

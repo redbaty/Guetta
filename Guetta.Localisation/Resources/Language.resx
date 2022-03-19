@@ -37,12 +37,15 @@
         <value>No songs in queue</value>
     </data>
     <data name="CantSkip" xml:space="preserve">
-        <value>Can't skip songs</value>
+        <value>No song is currently playing</value>
     </data>
     <data name="SongDownloading" xml:space="preserve">
         <value>Downloading song...</value>
     </data>
     <data name="PlaylistQueued" xml:space="preserve">
         <value>The playlist {1} has been enqueued by {1}</value>
+    </data>
+    <data name="SongNotFound" xml:space="preserve">
+        <value>No song was found on that URL</value>
     </data>
 </root>
