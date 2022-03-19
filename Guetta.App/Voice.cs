@@ -22,8 +22,6 @@ namespace Guetta.App
 
         public ulong GuildId { get; }
 
-        internal QueueItem CurrentItem { get; set; }
-
         private VoiceTransmitSink CurrentDiscordSink { get; set; }
 
         private YoutubeDlService YoutubeDlService { get; }
@@ -54,18 +52,17 @@ namespace Guetta.App
 
         public async Task Play(QueueItem queueItem, CancellationToken cancellationToken)
         {
-            CurrentItem = queueItem;
             CurrentDiscordSink ??= AudioClient.GetTransmitSink();
 
             try
             {
-                await CurrentItem.Channel.TriggerTypingAsync();
+                await queueItem.Channel.TriggerTypingAsync();
 
-                await LocalisationService.SendMessageAsync(CurrentItem.Channel, "SongPlaying",
-                        CurrentItem.VideoInformation.Title, CurrentItem.User.Mention)
+                await LocalisationService.SendMessageAsync(queueItem.Channel, "SongPlaying",
+                        queueItem.VideoInformation.Title, queueItem.User.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
 
-                await YoutubeDlService.SendToAudioSink(CurrentItem.VideoInformation.Url, CurrentDiscordSink, cancellationToken);
+                await YoutubeDlService.SendToAudioSink(queueItem.VideoInformation.Url, CurrentDiscordSink, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -75,7 +72,7 @@ namespace Guetta.App
             finally
             {
                 await CurrentDiscordSink.FlushAsync(CancellationToken.None);
-                CurrentItem = null;
+                queueItem = null;
             }
         }
     }

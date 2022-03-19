@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +32,7 @@ namespace Guetta.App
 
         private CancellationTokenSource CancellationTokenSource { get; set; }
 
-        private QueueItem CurrentItem => Voice.CurrentItem;
+        private QueueItem CurrentItem { get; set; }
 
         private LocalisationService LocalisationService { get; }
 
@@ -55,6 +56,7 @@ namespace Guetta.App
             {
                 while (Queue.TryDequeue(out var queueItem))
                 {
+                    CurrentItem = queueItem;
                     queueItem.CurrentQueueIndex = 0;
                     ReOrderQueue();
 
@@ -64,8 +66,15 @@ namespace Guetta.App
                     CancellationTokenSource = new CancellationTokenSource();
 
                     queueItem.Playing = true;
-                    await Voice.Play(queueItem, CancellationTokenSource.Token);
-                    queueItem.Playing = false;
+                    try
+                    {
+                        await Voice.Play(queueItem, CancellationTokenSource.Token);
+                    }
+                    finally
+                    {
+                        queueItem.Playing = false;
+                        CurrentItem = null;
+                    }
                 }
 
                 LoopQueue = null;
@@ -86,7 +95,7 @@ namespace Guetta.App
 
         public bool CanSkip()
         {
-            return CanPlay() && CancellationTokenSource != null;
+            return CanPlay() && CurrentItem != null;
         }
 
         public void Enqueue(QueueItem item)
@@ -98,11 +107,7 @@ namespace Guetta.App
 
         public void Skip()
         {
-            if (CancellationTokenSource != null)
-            {
-                CancellationTokenSource.Cancel();
-                CancellationTokenSource = null;
-            }
+            CancellationTokenSource?.Cancel();
         }
     }
 }
