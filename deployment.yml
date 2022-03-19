@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: env-guetta
+data:
+  TOKEN: <YOUR-TOKEN>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: guetta
+spec:
+  selector:
+    matchLabels:
+      app: guetta
+  template:
+    metadata:
+      labels:
+        app: guetta
+    spec:
+      containers:
+      - name: guetta
+        image: redbaty/guetta:simple
+        envFrom:
+          - configMapRef:
+              name: env-guetta
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"
