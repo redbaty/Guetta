@@ -8,7 +8,7 @@ namespace Guetta.App
 {
     public class ChannelStream : Stream
     {
-        private Channel<byte[]> UnderlyingChannel { get; } = Channel.CreateUnbounded<byte[]>();
+        private Channel<byte[]> UnderlyingChannel { get; } = Channel.CreateBounded<byte[]>(50);
 
         private ChannelWriter<byte[]> Writer => UnderlyingChannel.Writer;
 
@@ -49,7 +49,7 @@ namespace Guetta.App
             throw new NotImplementedException();
         }
 
-        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new())
         {
             return Writer.WriteAsync(buffer.ToArray(), cancellationToken);
         }
