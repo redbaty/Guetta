@@ -42,6 +42,8 @@ namespace Guetta.App
             var jsonDocument = JsonDocument.Parse(executeBufferedAsync.StandardOutput);
             var root = jsonDocument.RootElement;
             var returnType = root.GetProperty("_type").GetString();
+            
+            Logger.LogDebug("yt-dlp type for input {@Input} is {@Type}", input, returnType);
 
             switch (returnType)
             {
