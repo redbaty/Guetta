@@ -65,6 +65,8 @@ namespace Guetta.App
                     yield return youtubeDlVideoInformation.ToVideoInformation();
                     break;
                 }
+                default:
+                    throw new TypeNotSupportedException(returnType);
             }
         }
 
