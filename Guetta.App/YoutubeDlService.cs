@@ -28,29 +28,40 @@ namespace Guetta.App
         public async IAsyncEnumerable<VideoInformation> GetVideoInformation(string input,
             [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            if (Uri.TryCreate(input, UriKind.Absolute, out _))
+            if (Uri.TryCreate(input, UriKind.Absolute, out var parsedUrl))
             {
-                if (PlaylistId.TryParse(input) is { } playlistId)
+                if (!parsedUrl.Host.EndsWith("youtube.com"))
                 {
-                    await foreach (var video in YoutubeClient.Playlists.GetVideosAsync(playlistId, cancellationToken))
+                    yield return new VideoInformation
                     {
+                        Title = null,
+                        Url = input
+                    };
+                }
+                else
+                {
+                    if (PlaylistId.TryParse(input) is { } playlistId)
+                    {
+                        await foreach (var video in YoutubeClient.Playlists.GetVideosAsync(playlistId, cancellationToken))
+                        {
+                            yield return new VideoInformation
+                            {
+                                Title = video.Title,
+                                Url = video.Url
+                            };
+                        }
+                    }
+
+                    if (VideoId.TryParse(input) is { } videoId)
+                    {
+                        var video = await YoutubeClient.Videos.GetAsync(videoId, cancellationToken);
+
                         yield return new VideoInformation
                         {
                             Title = video.Title,
                             Url = video.Url
                         };
                     }
-                }
-
-                if (VideoId.TryParse(input) is { } videoId)
-                {
-                    var video = await YoutubeClient.Videos.GetAsync(videoId, cancellationToken);
-
-                    yield return new VideoInformation
-                    {
-                        Title = video.Title,
-                        Url = video.Url
-                    };
                 }
             }
             else if(!string.IsNullOrEmpty(input))
