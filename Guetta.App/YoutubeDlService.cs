@@ -11,21 +11,17 @@ using Guetta.Abstractions;
 using Guetta.App.Exceptions;
 using Guetta.App.Extensions;
 using Microsoft.Extensions.Logging;
-using YoutubeExplode;
 
 namespace Guetta.App
 {
     public class YoutubeDlService
     {
-        public YoutubeDlService(ILogger<YoutubeDlService> logger, YoutubeClient youtubeClient)
+        public YoutubeDlService(ILogger<YoutubeDlService> logger)
         {
             Logger = logger;
-            YoutubeClient = youtubeClient;
         }
 
         private ILogger<YoutubeDlService> Logger { get; }
-
-        private YoutubeClient YoutubeClient { get; }
 
         public async IAsyncEnumerable<VideoInformation> GetVideoInformation(string input,
             [EnumeratorCancellation]
