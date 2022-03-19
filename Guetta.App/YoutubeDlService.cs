@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -111,7 +111,7 @@ namespace Guetta.App
                     .Task
                     .ContinueWith(_ => stream.Complete(), cancellationToken);
 
-                await foreach (var bytes in stream.Reader.ReadAllAsync(cancellationToken))
+                await foreach (var bytes in stream.Reader.ReadAllAsync(cancellationToken).ChunkAndMerge(4, cancellationToken))
                 {
                     await currentDiscordStream.WriteAsync(bytes, cancellationToken);
                 }
