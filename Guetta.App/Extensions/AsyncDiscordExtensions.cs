@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Guetta.App;
+namespace Guetta.App.Extensions;
 
 internal static class AsyncDiscordExtensions
 {
