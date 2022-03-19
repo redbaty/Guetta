@@ -72,7 +72,7 @@ namespace Guetta.App
         {
             var youtubeDlArguments = new[]
             {
-                "-f bestaudio*[ext=webm][acodec=opus][asr=48000]/ba*[ext=m4a]",
+                "-f bestaudio*[ext=webm][acodec=opus][asr=48000]/ba*[ext=m4a]/ba*",
                 "--no-continue",
                 $"\"{input}\"",
                 "-o -"
