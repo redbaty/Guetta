@@ -1,15 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CliWrap;
+using CliWrap.Buffered;
 using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
+using Guetta.App.Exceptions;
+using Guetta.App.Extensions;
 using Microsoft.Extensions.Logging;
 using YoutubeExplode;
-using YoutubeExplode.Playlists;
-using YoutubeExplode.Videos;
 
 namespace Guetta.App
 {
@@ -26,54 +28,42 @@ namespace Guetta.App
         private YoutubeClient YoutubeClient { get; }
 
         public async IAsyncEnumerable<VideoInformation> GetVideoInformation(string input,
-            [EnumeratorCancellation] CancellationToken cancellationToken)
+            [EnumeratorCancellation]
+            CancellationToken cancellationToken)
         {
-            if (Uri.TryCreate(input, UriKind.Absolute, out var parsedUrl))
+            if(string.IsNullOrEmpty(input))
+                yield break;
+            
+            if (!Uri.TryCreate(input, UriKind.Absolute, out _))
             {
-                if (!parsedUrl.Host.EndsWith("youtube.com"))
-                {
-                    yield return new VideoInformation
-                    {
-                        Title = null,
-                        Url = input
-                    };
-                }
-                else
-                {
-                    if (PlaylistId.TryParse(input) is { } playlistId)
-                    {
-                        await foreach (var video in YoutubeClient.Playlists.GetVideosAsync(playlistId, cancellationToken))
-                        {
-                            yield return new VideoInformation
-                            {
-                                Title = video.Title,
-                                Url = video.Url
-                            };
-                        }
-                    }
-
-                    if (VideoId.TryParse(input) is { } videoId)
-                    {
-                        var video = await YoutubeClient.Videos.GetAsync(videoId, cancellationToken);
-
-                        yield return new VideoInformation
-                        {
-                            Title = video.Title,
-                            Url = video.Url
-                        };
-                    }
-                }
+                input = $"ytsearch:{input}";
             }
-            else if(!string.IsNullOrEmpty(input))
+            
+            var ytDlpCommand = Cli.Wrap("yt-dlp")
+                .WithArguments(builder => builder.Add("-J").Add(input));
+            var executeBufferedAsync = await ytDlpCommand.ExecuteBufferedAsync(cancellationToken);
+
+            var jsonDocument = JsonDocument.Parse(executeBufferedAsync.StandardOutput);
+            var root = jsonDocument.RootElement;
+            var returnType = root.GetProperty("_type").GetString();
+
+            switch (returnType)
             {
-                await foreach (var searchResult in YoutubeClient.Search.GetVideosAsync(input, cancellationToken))
+                case "playlist":
                 {
-                    yield return new VideoInformation
+                    var youtubeDlPlaylistInformation = JsonSerializer.Deserialize<YoutubeDlPlaylistInformation>(root.GetRawText()) ?? throw new FailedToGetVideoInformationException();
+                    foreach (var youtubeDlVideoInformation in youtubeDlPlaylistInformation.Entries)
                     {
-                        Title = searchResult.Title,
-                        Url = searchResult.Url
-                    };
-                    yield break;
+                        yield return youtubeDlVideoInformation.ToVideoInformation();
+                    }
+
+                    break;
+                }
+                case "video":
+                {
+                    var youtubeDlVideoInformation = JsonSerializer.Deserialize<YoutubeDlVideoInformation>(root.GetRawText()) ?? throw new FailedToGetVideoInformationException();
+                    yield return youtubeDlVideoInformation.ToVideoInformation();
+                    break;
                 }
             }
         }
@@ -107,7 +97,7 @@ namespace Guetta.App
             };
 
             Logger.LogDebug("{@Program} arguments: {@Arguments}", "ffmpeg", ffmpegArguments);
-            
+
             var stream = new ChannelStream();
 
             var ffmpegCommand = Cli.Wrap("ffmpeg")
