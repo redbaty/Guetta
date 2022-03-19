@@ -8,7 +8,11 @@ namespace Guetta.App
 {
     public class ChannelStream : Stream
     {
-        private Channel<byte[]> UnderlyingChannel { get; } = Channel.CreateBounded<byte[]>(50);
+        private const int DefaultCapacity = 100;
+
+        private static int ChannelCapacity { get; } = int.TryParse(Environment.GetEnvironmentVariable("DISCORD_W_CAPACITY") ?? string.Empty, out var size) ? size : DefaultCapacity;
+        
+        private Channel<byte[]> UnderlyingChannel { get; } = Channel.CreateBounded<byte[]>(ChannelCapacity);
 
         private ChannelWriter<byte[]> Writer => UnderlyingChannel.Writer;
 

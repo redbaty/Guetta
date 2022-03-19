@@ -23,18 +23,22 @@ namespace Guetta.App
 
         private ILogger<YoutubeDlService> Logger { get; }
 
+        private const int DefaultDiscordChunkSize = 2;
+
+        private static int DiscordChunkSize { get; } = int.TryParse(Environment.GetEnvironmentVariable("DISCORD_W_CHUNK_SIZE") ?? string.Empty, out var size) ? size : DefaultDiscordChunkSize;
+
         public async IAsyncEnumerable<VideoInformation> GetVideoInformation(string input,
             [EnumeratorCancellation]
             CancellationToken cancellationToken)
         {
-            if(string.IsNullOrEmpty(input))
+            if (string.IsNullOrEmpty(input))
                 yield break;
-            
+
             if (!Uri.TryCreate(input, UriKind.Absolute, out _))
             {
                 input = $"ytsearch:{input}";
             }
-            
+
             var ytDlpCommand = Cli.Wrap("yt-dlp")
                 .WithArguments(builder => builder.Add("-J").Add(input));
             var executeBufferedAsync = await ytDlpCommand.ExecuteBufferedAsync(cancellationToken);
@@ -42,7 +46,7 @@ namespace Guetta.App
             var jsonDocument = JsonDocument.Parse(executeBufferedAsync.StandardOutput);
             var root = jsonDocument.RootElement;
             var returnType = root.GetProperty("_type").GetString();
-            
+
             Logger.LogDebug("yt-dlp type for input {@Input} is {@Type}", input, returnType);
 
             switch (returnType)
@@ -112,7 +116,7 @@ namespace Guetta.App
                     .Task
                     .ContinueWith(_ => stream.Complete(), cancellationToken);
 
-                await foreach (var bytes in stream.Reader.ReadAllAsync(cancellationToken).ChunkAndMerge(4, cancellationToken))
+                await foreach (var bytes in stream.Reader.ReadAllAsync(cancellationToken).ChunkAndMerge(DiscordChunkSize, cancellationToken))
                 {
                     await currentDiscordStream.WriteAsync(bytes, cancellationToken);
                 }
