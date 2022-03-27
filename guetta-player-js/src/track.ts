@@ -72,7 +72,7 @@ export class Track implements TrackData {
      */
     public createAudioResource(): Promise<AudioResource<Track>> {
         return new Promise((resolve, reject) => {
-			const process = spawn('yt-dlp', [this.url, '-f', `bestaudio*[ext=webm][acodec=opus][asr=48000]/ba*[ext=m4a]`, '-r', '100K', '-o', '-']);
+			const process = spawn('yt-dlp', [this.url, '-f', `bestaudio*[ext=webm][acodec=opus][asr=48000]/ba*[ext=m4a]/ba*`, '-r', '100K', '-o', '-']);
 
             if (!process.stdout) {
                 reject(new Error('No stdout'));
