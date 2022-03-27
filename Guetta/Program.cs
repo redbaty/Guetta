@@ -13,7 +13,6 @@ using Guetta.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Serilog.Extensions.Logging;
-using YoutubeExplode;
 
 namespace Guetta
 {
@@ -48,9 +47,9 @@ namespace Guetta
             serviceCollection.AddLogging(builder => builder.AddSerilog());
             serviceCollection.AddRedisConnection();
             serviceCollection.AddQueueClient();
-            serviceCollection.AddTransient<YoutubeClient>();
             serviceCollection.AddRabbitConnection();
             serviceCollection.AddPlayerClient();
+            serviceCollection.AddTransient<YoutubeDlService>();
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
             await serviceProvider.ValidateAndConfigureLocalisation();
