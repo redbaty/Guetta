@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -83,9 +83,9 @@ namespace Guetta.App
 
         public IEnumerable<QueueItem> GetQueueItems()
         {
-            foreach (var queueItem in Queue.OrderBy(i => i.CurrentQueueIndex)) yield return queueItem;
-
             if (CurrentItem != null) yield return CurrentItem;
+            
+            foreach (var queueItem in Queue.OrderBy(i => i.CurrentQueueIndex)) yield return queueItem;
         }
 
         public bool CanPlay()
