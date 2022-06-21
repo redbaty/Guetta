@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -22,6 +22,8 @@ namespace Guetta.App
 
         public ulong GuildId { get; }
 
+        public int Count => Queue.Count;
+        
         private Queue<QueueItem> Queue { get; } = new();
 
         private ILogger<GuildQueue> Logger { get; }
@@ -31,7 +33,7 @@ namespace Guetta.App
         private Voice Voice { get; }
 
         private CancellationTokenSource CancellationTokenSource { get; set; }
-
+        
         private QueueItem CurrentItem { get; set; }
 
         private LocalisationService LocalisationService { get; }
@@ -108,6 +110,12 @@ namespace Guetta.App
         public void Skip()
         {
             CancellationTokenSource?.Cancel();
+        }
+
+        public void Clear()
+        {
+            Queue.Clear();
+            Skip();
         }
     }
 }
