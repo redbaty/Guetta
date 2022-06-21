@@ -12,6 +12,45 @@
         <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
     </resheader>
     <data name="SongQueued" xml:space="preserve">
-        <value>Botei na fila patrao</value>
+        <value>Botei na fila </value>
+    </data>
+    <data name="QueueCleared" xml:space="preserve">
+        <value>Fila resetada</value>
+    </data>
+    <data name="CantSkip" xml:space="preserve">
+        <value>Não ta tocando nada</value>
+    </data>
+    <data name="InvalidArgument" xml:space="preserve">
+        <value>Argumento invalido</value>
+    </data>
+    <data name="NoSongsInQueue" xml:space="preserve">
+        <value>A fila está vazia</value>
+    </data>
+    <data name="NotInChannel" xml:space="preserve">
+        <value>{0} voce não está em um canal de voz</value>
+    </data>
+    <data name="PlaylistQueued" xml:space="preserve">
+        <value>A playlist "{1}" foi incluida na fila pelo {0}</value>
+    </data>
+    <data name="SongDownloading" xml:space="preserve">
+        <value>Baixando musica</value>
+    </data>
+    <data name="SongNotFound" xml:space="preserve">
+        <value>Nenhuma musica encontrada</value>
+    </data>
+    <data name="SongPlaying" xml:space="preserve">
+        <value>Botando {0}, a pedido do {1}</value>
+    </data>
+    <data name="SongSkipped" xml:space="preserve">
+        <value>Pulando musica</value>
+    </data>
+    <data name="QueueItem" xml:space="preserve">
+        <value>[{0}] {1} (Pedido por: {2})</value>
+    </data>
+    <data name="MultipleSongsConfirmation" xml:space="preserve">
+        <value>Tem certeza que quer adicionar {0} musicas? Reaja com {1} para sim e {2} para cancelar</value>
+    </data>
+    <data name="MultipleSongsConfirmationCanceled" xml:space="preserve">
+        <value>Inclusão de playlist cancelada</value>
     </data>
 </root>

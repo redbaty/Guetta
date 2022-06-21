@@ -43,9 +43,21 @@
         <value>Downloading song...</value>
     </data>
     <data name="PlaylistQueued" xml:space="preserve">
-        <value>The playlist {1} has been enqueued by {1}</value>
+        <value>The playlist "{1}" has been enqueued by {0}</value>
     </data>
     <data name="SongNotFound" xml:space="preserve">
         <value>No song was found on that URL</value>
+    </data>
+    <data name="QueueCleared" xml:space="preserve">
+        <value>The queued has been reset</value>
+    </data>
+    <data name="QueueItem" xml:space="preserve">
+        <value>[{0}] {1} (Queued by: {2})</value>
+    </data>
+    <data name="MultipleSongsConfirmation" xml:space="preserve">
+        <value>Are you sure you want to add {0} songs? React with {1} for yes, and {2} to cancel</value>
+    </data>
+    <data name="MultipleSongsConfirmationCanceled" xml:space="preserve">
+        <value>Playlist not queued due to user choice</value>
     </data>
 </root>
