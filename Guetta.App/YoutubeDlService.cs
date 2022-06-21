@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,21 +26,19 @@ namespace Guetta.App
 
         private static int DiscordChunkSize { get; } = int.TryParse(Environment.GetEnvironmentVariable("DISCORD_W_CHUNK_SIZE") ?? string.Empty, out var size) ? size : DefaultDiscordChunkSize;
 
-        public async IAsyncEnumerable<VideoInformation> GetVideoInformation(string input,
-            [EnumeratorCancellation]
-            CancellationToken cancellationToken)
+        public async Task<PlaylistInformation> GetVideoInformation(string input)
         {
             if (string.IsNullOrEmpty(input))
-                yield break;
+                return null;
 
             if (!Uri.TryCreate(input, UriKind.Absolute, out _))
             {
                 input = $"ytsearch:{input}";
             }
-
+            
             var ytDlpCommand = Cli.Wrap("yt-dlp")
-                .WithArguments(builder => builder.Add("-J").Add(input));
-            var executeBufferedAsync = await ytDlpCommand.ExecuteBufferedAsync(cancellationToken);
+                .WithArguments(builder => builder.Add("-J").Add("--flat-playlist").Add(input));
+            var executeBufferedAsync = await ytDlpCommand.ExecuteBufferedAsync();
 
             var jsonDocument = JsonDocument.Parse(executeBufferedAsync.StandardOutput);
             var root = jsonDocument.RootElement;
@@ -54,18 +51,20 @@ namespace Guetta.App
                 case "playlist":
                 {
                     var youtubeDlPlaylistInformation = JsonSerializer.Deserialize<YoutubeDlPlaylistInformation>(root.GetRawText()) ?? throw new FailedToGetVideoInformationException();
-                    foreach (var youtubeDlVideoInformation in youtubeDlPlaylistInformation.Entries)
-                    {
-                        yield return youtubeDlVideoInformation.ToVideoInformation();
-                    }
 
-                    break;
+                    return new PlaylistInformation
+                    {
+                        Title = youtubeDlPlaylistInformation.Title,
+                        Videos = youtubeDlPlaylistInformation.Entries.Select(o => o.ToVideoInformation()).Where(i => !string.IsNullOrEmpty(i.Url)).ToArray()
+                    };
                 }
                 case "video":
                 {
                     var youtubeDlVideoInformation = JsonSerializer.Deserialize<YoutubeDlVideoInformation>(root.GetRawText()) ?? throw new FailedToGetVideoInformationException();
-                    yield return youtubeDlVideoInformation.ToVideoInformation();
-                    break;
+                    return new PlaylistInformation
+                    {
+                        Videos = new[] { youtubeDlVideoInformation.ToVideoInformation() }
+                    };
                 }
                 default:
                     throw new TypeNotSupportedException(returnType);

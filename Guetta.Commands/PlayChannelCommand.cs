@@ -2,7 +2,10 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DSharpPlus;
 using DSharpPlus.Entities;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 using Guetta.Abstractions;
 using Guetta.App;
 using Guetta.App.Extensions;
@@ -12,11 +15,12 @@ namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(YoutubeDlService youtubeDlService, LocalisationService localisationService, GuildContextManager guildContextManager)
+        public PlayChannelCommand(YoutubeDlService youtubeDlService, LocalisationService localisationService, GuildContextManager guildContextManager, DiscordClient discordClient)
         {
             YoutubeDlService = youtubeDlService;
             LocalisationService = localisationService;
             GuildContextManager = guildContextManager;
+            DiscordClient = discordClient;
         }
 
         private GuildContextManager GuildContextManager { get; }
@@ -24,6 +28,8 @@ namespace Guetta.Commands
         private YoutubeDlService YoutubeDlService { get; }
 
         private LocalisationService LocalisationService { get; }
+
+        private DiscordClient DiscordClient { get; }
 
         public async Task ExecuteAsync(DiscordMessage message, string[] arguments)
         {
@@ -61,31 +67,51 @@ namespace Guetta.Commands
 
             await message.Channel.TriggerTypingAsync();
             var url = arguments.Aggregate((x, y) => $"{x} {y}");
-            var videosFound = 0;
 
-
-            await foreach (var videoInformation in YoutubeDlService.GetVideoInformation(url, CancellationToken.None))
-            {
-                videosFound++;
-
-                queue.Enqueue(new QueueItem
+            var playlistInformation = await YoutubeDlService.GetVideoInformation(url);
+            var queueItems = playlistInformation?.Videos
+                .Select(i => new QueueItem
                 {
                     User = message.Author,
                     Channel = message.Channel,
-                    VideoInformation = videoInformation
-                });
+                    VideoInformation = i
+                }).ToArray();
+
+            if (queueItems is { Length: > 1 })
+            {
+                var positiveEmoji = DiscordEmoji.FromName(DiscordClient, ":white_check_mark:");
+                var negativeEmoji = DiscordEmoji.FromName(DiscordClient, ":negative_squared_cross_mark:");
+                var respondAsync = await message.RespondAsync(string.Format(LocalisationService.GetMessageTemplate("MultipleSongsConfirmation"), queueItems.Length, positiveEmoji, negativeEmoji));
+                var confirmPlaylistQueue = await respondAsync.Ask(message.Author, positiveEmoji, negativeEmoji, TimeSpan.FromSeconds(10));
+                await respondAsync.DeleteAsync();
+
+                if (!confirmPlaylistQueue)
+                {
+                    await LocalisationService.ReplyMessageAsync(message, "MultipleSongsConfirmationCanceled").DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                    return;
+                }
             }
 
-            if (videosFound > 0)
+            if (queueItems != null)
+                foreach (var queueItem in queueItems)
+                    queue.Enqueue(queueItem);
+
+            if (queueItems is { Length: > 0 } && string.IsNullOrEmpty(playlistInformation.Title))
             {
                 await LocalisationService
-                    .SendMessageAsync(message.Channel, "SongQueued", message.Author.Mention, string.Empty)
+                    .ReplyMessageAsync(message, "SongQueued", message.Author.Mention, string.Empty)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+            }
+            else if (queueItems is { Length: > 0 })
+            {
+                await LocalisationService
+                    .ReplyMessageAsync(message, "PlaylistQueued", message.Author.Mention, playlistInformation.Title)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
             else
             {
                 await LocalisationService
-                    .SendMessageAsync(message.Channel, "SongNotFound", message.Author.Mention, string.Empty)
+                    .ReplyMessageAsync(message, "SongNotFound", message.Author.Mention, string.Empty)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(5));
             }
         }
