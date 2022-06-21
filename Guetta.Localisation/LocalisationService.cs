@@ -26,8 +26,7 @@ namespace Guetta.Localisation
 
         private Dictionary<string, string> Items { get; }
 
-        public async Task<DiscordMessage> SendMessageAsync(DiscordChannel channel, string code,
-            params object[] parameters)
+        public string GetMessageTemplate(string code)
         {
             var messageTemplate = Items.GetValueOrDefault(code);
 
@@ -36,8 +35,19 @@ namespace Guetta.Localisation
                 throw new ArgumentOutOfRangeException(nameof(code));
             }
 
-            var message = string.Format(messageTemplate, parameters);
-            return await channel.SendMessageAsync(message);
+            return messageTemplate;
+        }
+        
+        public Task<DiscordMessage> ReplyMessageAsync(DiscordMessage message, string code,
+            params object[] parameters)
+        {
+            return message.RespondAsync(string.Format(GetMessageTemplate(code), parameters));
+        }
+        
+        public Task<DiscordMessage> SendMessageAsync(DiscordChannel channel, string code,
+            params object[] parameters)
+        {
+            return channel.SendMessageAsync(string.Format(GetMessageTemplate(code), parameters));
         }
     }
 }
