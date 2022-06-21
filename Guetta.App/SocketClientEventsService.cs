@@ -54,7 +54,13 @@ namespace Guetta.App
                 message.DeleteMessageAfter(TimeSpan.FromSeconds(10));
                 var commandArguments = message.Content[1..].Split(" ");
                 var discordCommand = CommandSolverService.GetCommand(commandArguments.First().ToLower());
-                discordCommand.ExecuteAsync(message, commandArguments.Skip(1).ToArray());
+                discordCommand.ExecuteAsync(message, commandArguments.Skip(1).ToArray()).ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                    {
+                        Logger.LogError(t.Exception, "Error while running command {@Command}", discordCommand);
+                    }
+                });
             }
 
             return Task.CompletedTask;
