@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.Interactivity;
+using DSharpPlus.Interactivity.Enums;
+using DSharpPlus.Interactivity.Extensions;
 using DSharpPlus.VoiceNext;
 using Guetta.App;
 using Guetta.App.Extensions;
@@ -32,6 +35,7 @@ namespace Guetta
                 LoggerFactory = new SerilogLoggerFactory()
             });
             discordSocketClient.UseVoiceNext();
+            discordSocketClient.UseInteractivity();
 
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddOptions();
