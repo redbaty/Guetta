@@ -27,4 +27,4 @@ jobs:
         with:
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: redbaty/guetta:simple
+          tags: redbaty/guetta:latest
