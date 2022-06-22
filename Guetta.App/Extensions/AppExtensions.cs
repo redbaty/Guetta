@@ -1,4 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Net.Http.Headers;
+using System.Reflection;
+using Guetta.App.Spotify;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Guetta.App.Extensions
 {
@@ -10,6 +13,11 @@ namespace Guetta.App.Extensions
             serviceCollection.AddSingleton<CommandSolverService>();
             serviceCollection.AddSingleton<GuildContextManager>();
             serviceCollection.AddTransient<YoutubeDlService>();
+            serviceCollection.AddTransient<VideoInformationService>();
+            serviceCollection.AddHttpClient<SpotifyService>(c =>
+            {
+                c.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("Guetta", "v1"));
+            });
         }
     }
 }

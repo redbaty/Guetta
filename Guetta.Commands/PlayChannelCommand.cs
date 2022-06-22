@@ -12,17 +12,17 @@ namespace Guetta.Commands
 {
     internal class PlayChannelCommand : IDiscordCommand
     {
-        public PlayChannelCommand(YoutubeDlService youtubeDlService, LocalisationService localisationService, GuildContextManager guildContextManager, DiscordClient discordClient)
+        public PlayChannelCommand(LocalisationService localisationService, GuildContextManager guildContextManager, DiscordClient discordClient, VideoInformationService videoInformationService)
         {
-            YoutubeDlService = youtubeDlService;
             LocalisationService = localisationService;
             GuildContextManager = guildContextManager;
             DiscordClient = discordClient;
+            VideoInformationService = videoInformationService;
         }
 
         private GuildContextManager GuildContextManager { get; }
 
-        private YoutubeDlService YoutubeDlService { get; }
+        private VideoInformationService VideoInformationService { get; }
 
         private LocalisationService LocalisationService { get; }
 
@@ -65,7 +65,7 @@ namespace Guetta.Commands
             await message.Channel.TriggerTypingAsync();
             var url = arguments.Aggregate((x, y) => $"{x} {y}");
 
-            var playlistInformation = await YoutubeDlService.GetVideoInformation(url);
+            var playlistInformation = await VideoInformationService.GetVideoInformation(url);
             var queueItems = playlistInformation?.Videos
                 .Select(i => new QueueItem
                 {
