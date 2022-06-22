@@ -91,7 +91,7 @@ namespace Guetta.App
 
                     return new PlaylistInformation
                     {
-                        Title = youtubeDlPlaylistInformation.Title,
+                        Title = youtubeDlPlaylistInformation.Entries.Length < 2 ? null : youtubeDlPlaylistInformation.Title,
                         Videos = youtubeDlPlaylistInformation.Entries.Select(o => o.ToVideoInformation()).Where(i => !string.IsNullOrEmpty(i.Url)).ToArray()
                     };
                 }
