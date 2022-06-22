@@ -9,4 +9,7 @@ internal class YoutubeDlVideoInformation
 
     [JsonPropertyName("url")]
     public string Url { get; init; }
+    
+    [JsonPropertyName("webpage_url")]
+    public string WebpageUrl { get; init; }
 }
