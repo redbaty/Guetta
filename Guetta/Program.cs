@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Interactivity;
@@ -47,10 +48,20 @@ namespace Guetta
 
             var serviceProvider = serviceCollection.BuildServiceProvider();
 
+            var ytdlpService = serviceProvider.GetRequiredService<YoutubeDlService>();
+            await ytdlpService.TryUpdate();
+
             var socketClientEventsService = serviceProvider.GetService<SocketClientEventsService>();
             socketClientEventsService!.Subscribe(discordSocketClient);
             await discordSocketClient.ConnectAsync();
 
+            var periodicTimer = new PeriodicTimer(TimeSpan.FromHours(24));
+
+            while (await periodicTimer.WaitForNextTickAsync())
+            {
+                await ytdlpService.TryUpdate();
+            }
+            
             await Task.Delay(-1);
         }
 

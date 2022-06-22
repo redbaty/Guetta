@@ -26,6 +26,27 @@ namespace Guetta.App
 
         private static int DiscordChunkSize { get; } = int.TryParse(Environment.GetEnvironmentVariable("DISCORD_W_CHUNK_SIZE") ?? string.Empty, out var size) ? size : DefaultDiscordChunkSize;
 
+        private static Command CreateCommand() => Cli.Wrap("yt-dlp");
+        
+        public async Task<bool> TryUpdate()
+        {
+            Logger.LogInformation("Trying to update yt-dlp");
+            
+            var command = CreateCommand()
+                .WithValidation(CommandResultValidation.None)
+                .WithArguments("-U");
+            var commandExecution = await command.ExecuteBufferedAsync();
+
+            if (commandExecution.ExitCode == 0)
+            {
+                Logger.LogInformation("YT-DLP is up to date {@OutputMessage}", commandExecution.StandardOutput);
+                return true;
+            }
+            
+            Logger.LogError("YT-DLP failed to update {@StdOutput} {@StdErr}", commandExecution.StandardOutput, commandExecution.StandardError);
+            return false;
+        }
+        
         public async Task<PlaylistInformation> GetVideoInformation(string input)
         {
             if (string.IsNullOrEmpty(input))
