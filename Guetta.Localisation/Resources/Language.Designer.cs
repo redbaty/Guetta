@@ -78,7 +78,7 @@ namespace Guetta.Localisation.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Are you sure you want to add {0} songs? React with {1} for yes, and {2} to cancel.
+        ///   Looks up a localized string similar to Are you sure you want to add {0} songs?.
         /// </summary>
         internal static string MultipleSongsConfirmation {
             get {
@@ -92,6 +92,24 @@ namespace Guetta.Localisation.Resources {
         internal static string MultipleSongsConfirmationCanceled {
             get {
                 return ResourceManager.GetString("MultipleSongsConfirmationCanceled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        internal static string MultipleSongsConfirmationNegativeButton {
+            get {
+                return ResourceManager.GetString("MultipleSongsConfirmationNegativeButton", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add playlist to queue.
+        /// </summary>
+        internal static string MultipleSongsConfirmationPositiveButton {
+            get {
+                return ResourceManager.GetString("MultipleSongsConfirmationPositiveButton", resourceCulture);
             }
         }
         

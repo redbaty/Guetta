@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
-using DSharpPlus.Interactivity.Enums;
-using DSharpPlus.Interactivity.Extensions;
 using Guetta.Abstractions;
 using Guetta.App;
 using Guetta.App.Extensions;
@@ -36,7 +33,7 @@ namespace Guetta.Commands
             if (arguments.Length < 1)
             {
                 await LocalisationService
-                    .SendMessageAsync(message.Channel, "InvalidArgument", message.Author.Mention)
+                    .ReplyMessageAsync(message, "InvalidArgument", message.Author.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(5));
                 return;
             }
@@ -59,7 +56,7 @@ namespace Guetta.Commands
                 else
                 {
                     await LocalisationService
-                        .SendMessageAsync(message.Channel, "NotInChannel", message.Author.Mention)
+                        .ReplyMessageAsync(message, "NotInChannel", message.Author.Mention)
                         .DeleteMessageAfter(TimeSpan.FromSeconds(5));
                     return;
                 }
@@ -80,10 +77,9 @@ namespace Guetta.Commands
             if (queueItems is { Length: > 1 })
             {
                 var positiveEmoji = DiscordEmoji.FromName(DiscordClient, ":white_check_mark:");
-                var negativeEmoji = DiscordEmoji.FromName(DiscordClient, ":negative_squared_cross_mark:");
-                var respondAsync = await message.RespondAsync(string.Format(LocalisationService.GetMessageTemplate("MultipleSongsConfirmation"), queueItems.Length, positiveEmoji, negativeEmoji));
-                var confirmPlaylistQueue = await respondAsync.Ask(message.Author, positiveEmoji, negativeEmoji, TimeSpan.FromSeconds(10));
-                await respondAsync.DeleteAsync();
+                var negativeEmoji = DiscordEmoji.FromName(DiscordClient, ":x:");
+                var content = string.Format(LocalisationService.GetMessageTemplate("MultipleSongsConfirmation"), queueItems.Length, positiveEmoji, negativeEmoji);
+                var confirmPlaylistQueue = await message.AskReply(content, message.Author, LocalisationService.GetMessageTemplate("MultipleSongsConfirmationPositiveButton"), positiveEmoji, LocalisationService.GetMessageTemplate("MultipleSongsConfirmationNegativeButton"), negativeEmoji, TimeSpan.FromSeconds(10));
 
                 if (!confirmPlaylistQueue)
                 {

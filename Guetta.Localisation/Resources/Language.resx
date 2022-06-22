@@ -55,9 +55,15 @@
         <value>[{0}] {1} (Queued by: {2})</value>
     </data>
     <data name="MultipleSongsConfirmation" xml:space="preserve">
-        <value>Are you sure you want to add {0} songs? React with {1} for yes, and {2} to cancel</value>
+        <value>Are you sure you want to add {0} songs?</value>
     </data>
     <data name="MultipleSongsConfirmationCanceled" xml:space="preserve">
         <value>Playlist not queued due to user choice</value>
+    </data>
+    <data name="MultipleSongsConfirmationPositiveButton" xml:space="preserve">
+        <value>Add playlist to queue</value>
+    </data>
+    <data name="MultipleSongsConfirmationNegativeButton" xml:space="preserve">
+        <value>Cancel</value>
     </data>
 </root>

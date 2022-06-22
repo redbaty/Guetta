@@ -48,9 +48,15 @@
         <value>[{0}] {1} (Pedido por: {2})</value>
     </data>
     <data name="MultipleSongsConfirmation" xml:space="preserve">
-        <value>Tem certeza que quer adicionar {0} musicas? Reaja com {1} para sim e {2} para cancelar</value>
+        <value>Tem certeza que quer adicionar {0} musicas?</value>
     </data>
     <data name="MultipleSongsConfirmationCanceled" xml:space="preserve">
         <value>Inclusão de playlist cancelada</value>
+    </data>
+    <data name="MultipleSongsConfirmationNegativeButton" xml:space="preserve">
+        <value>Cancelar</value>
+    </data>
+    <data name="MultipleSongsConfirmationPositiveButton" xml:space="preserve">
+        <value>Adicionar playlist</value>
     </data>
 </root>

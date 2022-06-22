@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.Interactivity.Extensions;
 
@@ -9,18 +9,17 @@ namespace Guetta.App.Extensions
 {
     public static class MessageExtensions
     {
-        public static async Task<bool> Ask(this DiscordMessage message, DiscordUser user, DiscordEmoji positiveEmoji, DiscordEmoji negativeEmoji, TimeSpan? timeoutOverride = null)
+        public static async Task<bool> AskReply(this DiscordMessage message, string content, DiscordUser user, string positiveContent, DiscordEmoji positiveEmoji, string negativeContent, DiscordEmoji negativeEmoji, TimeSpan? timeoutOverride = null)
         {
-            await message.AddReactions(new[] { negativeEmoji, positiveEmoji });
-            var reaction = await message.WaitForReactionAsync(user, timeoutOverride);
-            return !reaction.TimedOut && reaction.Result.Emoji == positiveEmoji;
+            var positiveButton = new DiscordButtonComponent(ButtonStyle.Success, "btn_success", positiveContent, false, new DiscordComponentEmoji(positiveEmoji));
+            var negativeButton = new DiscordButtonComponent(ButtonStyle.Secondary, "btn_negative", negativeContent, false, new DiscordComponentEmoji(negativeEmoji));
+            var discordMessage = await message.RespondAsync(b => b.WithContent(content).AddComponents(negativeButton, positiveButton));
+
+            var waitForButtonAsync = await discordMessage.WaitForButtonAsync(user, timeoutOverride);
+            await discordMessage.DeleteAsync();
+            return !waitForButtonAsync.TimedOut && waitForButtonAsync.Result.Id == "btn_success";
         }
 
-        private static async Task AddReactions(this DiscordMessage message, IEnumerable<DiscordEmoji> emojis)
-        {
-            foreach (var emoji in emojis) await message.CreateReactionAsync(emoji);
-        }
-        
         public static Task DeleteMessageAfter(this DiscordMessage message, TimeSpan timeout)
         {
             return Task.Run(async () =>
