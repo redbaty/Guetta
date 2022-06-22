@@ -15,6 +15,15 @@ namespace Guetta.App
 {
     public class YoutubeDlService
     {
+        private static string[] FfmpegArguments { get; }= {
+            "-hide_banner",
+            "-i -",
+            "-ac 2",
+            "-f s16le",
+            "-ar 48000",
+            "-"
+        };
+
         public YoutubeDlService(ILogger<YoutubeDlService> logger)
         {
             Logger = logger;
@@ -57,9 +66,16 @@ namespace Guetta.App
                 input = $"ytsearch:{input}";
             }
             
-            var ytDlpCommand = Cli.Wrap("yt-dlp")
-                .WithArguments(builder => builder.Add("-J").Add("--flat-playlist").Add(input));
+            var ytDlpCommand = CreateCommand()
+                .WithArguments(builder => builder.Add("-J").Add("--flat-playlist").Add(input))
+                .WithValidation(CommandResultValidation.None);
             var executeBufferedAsync = await ytDlpCommand.ExecuteBufferedAsync();
+
+            if (executeBufferedAsync.ExitCode != 0)
+            {
+                Logger.LogError("Failed to execute YT-DLP to get video information. {@StdOut} {@StdErr}", executeBufferedAsync.StandardOutput, executeBufferedAsync.StandardError);
+                return null;
+            }
 
             var jsonDocument = JsonDocument.Parse(executeBufferedAsync.StandardOutput);
             var root = jsonDocument.RootElement;
@@ -103,24 +119,13 @@ namespace Guetta.App
                 "-o -"
             };
 
-            var youtubeDlCommand = Cli.Wrap("yt-dlp")
+            var youtubeDlCommand = CreateCommand()
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(s =>
                     Logger.LogDebug("Youtube-DL message: {@Message}", s)))
                 .WithArguments(youtubeDlArguments, false);
 
             Logger.LogDebug("{@Program} arguments: {@Arguments}", "yt-dlp", youtubeDlArguments);
-
-            var ffmpegArguments = new[]
-            {
-                "-hide_banner",
-                "-i -",
-                "-ac 2",
-                "-f s16le",
-                "-ar 48000",
-                "-"
-            };
-
-            Logger.LogDebug("{@Program} arguments: {@Arguments}", "ffmpeg", ffmpegArguments);
+            Logger.LogDebug("{@Program} arguments: {@Arguments}", "ffmpeg", FfmpegArguments);
 
             var stream = new ChannelStream();
 
@@ -128,7 +133,7 @@ namespace Guetta.App
                 .WithStandardInputPipe(PipeSource.FromCommand(youtubeDlCommand))
                 .WithStandardOutputPipe(PipeTarget.ToStream(stream))
                 .WithStandardErrorPipe(PipeTarget.ToDelegate(s => Logger.LogDebug("FFMpeg message: {@Message}", s)))
-                .WithArguments(ffmpegArguments, false);
+                .WithArguments(FfmpegArguments, false);
 
             try
             {
