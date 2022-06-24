@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.Commands", "Guetta.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.Localisation", "Guetta.Localisation\Guetta.Localisation.csproj", "{1AA857D3-FC4F-4C65-BA50-F8307C83CEB8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Guetta.Api", "Guetta.Api\Guetta.Api.csproj", "{5083E536-522E-48EA-910F-154A4ADBD942}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{1AA857D3-FC4F-4C65-BA50-F8307C83CEB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1AA857D3-FC4F-4C65-BA50-F8307C83CEB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1AA857D3-FC4F-4C65-BA50-F8307C83CEB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5083E536-522E-48EA-910F-154A4ADBD942}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5083E536-522E-48EA-910F-154A4ADBD942}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5083E536-522E-48EA-910F-154A4ADBD942}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5083E536-522E-48EA-910F-154A4ADBD942}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
