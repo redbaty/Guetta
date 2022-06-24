@@ -52,7 +52,7 @@ namespace Guetta
             await ytdlpService.TryUpdate();
 
             var socketClientEventsService = serviceProvider.GetService<SocketClientEventsService>();
-            socketClientEventsService!.Subscribe(discordSocketClient);
+            socketClientEventsService!.Subscribe();
             await discordSocketClient.ConnectAsync();
 
             var periodicTimer = new PeriodicTimer(TimeSpan.FromHours(24));
