@@ -17,6 +17,8 @@ public class GuildContextManager
 
     private IServiceProvider ServiceProvider { get; }
 
+    public ICollection<ulong> GetActiveGuilds() => ContextByGuild.Keys;
+
     private Voice BuildVoice(ulong guildId) => new(
         ServiceProvider.GetService<YoutubeDlService>(),
         ServiceProvider.GetService<LocalisationService>(),
@@ -36,6 +38,11 @@ public class GuildContextManager
         var voice = BuildVoice(guildId);
         var queue = BuildQueue(guildId, voice);
         return new GuildContext(guildId, queue, voice);
+    }
+
+    public GuildContext GetOrDefault(ulong guildId)
+    {
+        return ContextByGuild.GetValueOrDefault(guildId);
     }
 
     public GuildContext GetOrCreate(ulong guildId)
