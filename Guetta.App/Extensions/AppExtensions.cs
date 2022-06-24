@@ -1,5 +1,4 @@
 ﻿using System.Net.Http.Headers;
-using System.Reflection;
 using Guetta.App.Spotify;
 using Microsoft.Extensions.DependencyInjection;
 

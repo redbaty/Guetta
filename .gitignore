@@ -351,3 +351,5 @@ MigrationBackup/
 
 .idea/
 Guetta/Properties/launchSettings.json
+
+Guetta.Api/Properties/launchSettings.json
