@@ -40,9 +40,6 @@ var socketClientEventsService = app.Services.GetRequiredService<SocketClientEven
 socketClientEventsService.Subscribe();
 await discordSocketClient.ConnectAsync();
 
-var commandSolverService = app.Services.GetRequiredService<CommandSolverService>();
-var commandQueueTask = commandSolverService.CreateCommandQueueTask();
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -54,4 +51,3 @@ app.MapHealthChecks("/healthz");
 app.MapHealthChecks("/health/startup", new HealthCheckOptions { Predicate = _ => false });
 app.MapHealthChecks("/ready", new HealthCheckOptions { Predicate = _ => false });
 await app.RunAsync();
-await commandQueueTask;

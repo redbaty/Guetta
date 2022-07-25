@@ -20,15 +20,15 @@ public class GuildContextManager
     public ICollection<ulong> GetActiveGuilds() => ContextByGuild.Keys;
 
     private Voice BuildVoice(ulong guildId) => new(
-        ServiceProvider.GetService<YoutubeDlService>(),
-        ServiceProvider.GetService<LocalisationService>(),
+        ServiceProvider.GetRequiredService<YoutubeDlService>(),
+        ServiceProvider.GetRequiredService<LocalisationService>(),
         guildId,
-        ServiceProvider.GetService<ILogger<Voice>>()
+        ServiceProvider.GetRequiredService<ILogger<Voice>>()
     );
 
     private GuildQueue BuildQueue(ulong guildId, Voice voice) => new(
-        ServiceProvider.GetService<ILogger<GuildQueue>>(),
-        ServiceProvider.GetService<LocalisationService>(),
+        ServiceProvider.GetRequiredService<ILogger<GuildQueue>>(),
+        ServiceProvider.GetRequiredService<LocalisationService>(),
         voice,
         guildId
     );

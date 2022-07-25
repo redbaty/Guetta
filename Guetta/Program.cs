@@ -55,9 +55,6 @@ namespace Guetta
             socketClientEventsService!.Subscribe();
             await discordSocketClient.ConnectAsync();
             
-            var commandSolverService = serviceProvider.GetRequiredService<CommandSolverService>();
-            var commandQueueTask = commandSolverService.CreateCommandQueueTask();
-
             var periodicTimer = new PeriodicTimer(TimeSpan.FromHours(24));
 
             while (await periodicTimer.WaitForNextTickAsync())
@@ -65,7 +62,7 @@ namespace Guetta
                 await ytdlpService.TryUpdate();
             }
             
-            await commandQueueTask;
+            await Task.Delay(-1);
         }
 
         private static void CurrentDomainOnUnhandledException(object sender, UnhandledExceptionEventArgs e)

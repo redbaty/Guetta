@@ -16,11 +16,12 @@ namespace Guetta.App
 
         private Channel<DiscordMessage> ExecutionChannel { get; } = Channel.CreateBounded<DiscordMessage>(100);
 
-        public CommandSolverService(IServiceProvider provider, ILogger<CommandSolverService> logger, IOptions<CommandOptions> options, LocalisationService localisationService)
+        public CommandSolverService(IServiceProvider provider, ILogger<CommandSolverService> logger, IOptions<CommandOptions> options, LocalisationService localisationService, GuildContextManager guildContextManager)
         {
             Provider = provider;
             Logger = logger;
             LocalisationService = localisationService;
+            GuildContextManager = guildContextManager;
             CommandOptions = options.Value;
         }
 
@@ -29,12 +30,14 @@ namespace Guetta.App
         private IServiceProvider Provider { get; }
         
         private LocalisationService LocalisationService { get; }
+        
+        private GuildContextManager GuildContextManager { get; }
 
-        public Task CreateCommandQueueTask()
+        private Task CreateCommandQueueTask(ChannelReader<DiscordMessage> reader)
         {
             return Task.Run(async () =>
             {
-                await foreach (var message in ExecutionChannel.Reader.ReadAllAsync())
+                await foreach (var message in reader.ReadAllAsync())
                 {
                     var commandArguments = message.Content[1..].Split(' ');
                     var discordCommand = GetCommand(commandArguments.First().ToLower());
@@ -54,9 +57,15 @@ namespace Guetta.App
             });
         }
 
-        public ValueTask AddMessageToQueue(DiscordMessage message)
+        public async ValueTask AddMessageToQueue(DiscordMessage message)
         {
-            return ExecutionChannel.Writer.WriteAsync(message);
+            if (!message.Channel.GuildId.HasValue)
+                return;
+            
+            var guildContext = GuildContextManager.GetOrCreate(message.Channel.GuildId.Value);
+            guildContext.CommandChannelTask ??= CreateCommandQueueTask(guildContext.CommandChannel);
+            
+            await guildContext.CommandChannel.Writer.WriteAsync(message);
         }
 
         private IDiscordCommand GetCommand(string command)
