@@ -69,4 +69,7 @@
     <data name="SongSkippedRequesterNotFound" xml:space="preserve">
         <value>Skipping song {0} since requester is not present</value>
     </data>
+    <data name="InvalidCommand" xml:space="preserve">
+        <value>Invalid command</value>
+    </data>
 </root>

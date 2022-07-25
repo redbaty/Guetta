@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using DSharpPlus;
+using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
@@ -23,11 +24,11 @@ namespace Guetta.App
         private CommandSolverService CommandSolverService { get; }
 
         private ILogger<SocketClientEventsService> Logger { get; }
-        
+
         private IOptions<CommandOptions> CommandOptions { get; }
 
         private DiscordClient Client { get; }
-        
+
         public bool Zombied { get; private set; }
 
         public void Subscribe()
@@ -42,31 +43,21 @@ namespace Guetta.App
             Zombied = true;
             return Task.CompletedTask;
         }
-        
+
         private Task OnReady(DiscordClient sender, ReadyEventArgs readyEventArgs)
         {
             Logger.LogInformation("Ready to go!");
             return Task.CompletedTask;
         }
 
-        private Task OnMessageReceived(DiscordClient sender, MessageCreateEventArgs messageCreateEventArgs)
+        private async Task OnMessageReceived(DiscordClient sender, MessageCreateEventArgs messageCreateEventArgs)
         {
             var message = messageCreateEventArgs.Message;
             if (message.Content.StartsWith(CommandOptions.Value.Prefix))
             {
-                message.DeleteMessageAfter(TimeSpan.FromSeconds(10));
-                var commandArguments = message.Content[1..].Split(' ');
-                var discordCommand = CommandSolverService.GetCommand(commandArguments.First().ToLower());
-                discordCommand.ExecuteAsync(message, commandArguments.Skip(1).ToArray()).ContinueWith(t =>
-                {
-                    if (t.IsFaulted)
-                    {
-                        Logger.LogError(t.Exception, "Error while running command {@Command}", discordCommand);
-                    }
-                });
+                _ = message.DeleteMessageAfter(TimeSpan.FromSeconds(10));
+                await CommandSolverService.AddMessageToQueue(message);
             }
-
-            return Task.CompletedTask;
         }
     }
 }

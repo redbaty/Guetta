@@ -79,6 +79,15 @@ namespace Guetta.Localisation.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid command.
+        /// </summary>
+        internal static string InvalidCommand {
+            get {
+                return ResourceManager.GetString("InvalidCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Are you sure you want to add {0} songs?.
         /// </summary>
         internal static string MultipleSongsConfirmation {
