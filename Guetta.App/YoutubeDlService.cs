@@ -31,10 +31,6 @@ namespace Guetta.App
 
         private ILogger<YoutubeDlService> Logger { get; }
 
-        private const int DefaultDiscordChunkSize = 2;
-
-        private static int DiscordChunkSize { get; } = int.TryParse(Environment.GetEnvironmentVariable("DISCORD_W_CHUNK_SIZE") ?? string.Empty, out var size) ? size : DefaultDiscordChunkSize;
-
         private static Command CreateCommand() => Cli.Wrap("yt-dlp");
         
         public async Task<bool> TryUpdate()
@@ -141,7 +137,7 @@ namespace Guetta.App
                     .Task
                     .ContinueWith(_ => stream.Complete(), CancellationToken.None);
 
-                await foreach (var bytes in stream.Reader.ReadAllAsync(cancellationToken).ChunkAndMerge(DiscordChunkSize, cancellationToken))
+                await foreach (var bytes in stream.Reader.ReadAllAsync(cancellationToken))
                 {
                     await currentDiscordStream.WriteAsync(bytes, cancellationToken);
                 }
