@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +22,7 @@ namespace Guetta.App
         public ulong GuildId { get; }
 
         public int Count => Queue.Count;
-        
+
         private Queue<QueueItem> Queue { get; } = new();
 
         private ILogger<GuildQueue> Logger { get; }
@@ -33,7 +32,7 @@ namespace Guetta.App
         private Voice Voice { get; }
 
         private CancellationTokenSource CancellationTokenSource { get; set; }
-        
+
         private QueueItem CurrentItem { get; set; }
 
         private LocalisationService LocalisationService { get; }
@@ -90,6 +89,7 @@ namespace Guetta.App
                     }
                 }
 
+                await Voice.Disconnect();
                 LoopQueue = null;
             });
         }
@@ -97,7 +97,7 @@ namespace Guetta.App
         public IEnumerable<QueueItem> GetQueueItems()
         {
             if (CurrentItem != null) yield return CurrentItem;
-            
+
             foreach (var queueItem in Queue.OrderBy(i => i.CurrentQueueIndex)) yield return queueItem;
         }
 
