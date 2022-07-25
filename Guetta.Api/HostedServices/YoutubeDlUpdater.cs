@@ -2,7 +2,7 @@
 
 namespace Guetta.Api.HostedServices;
 
-public class YoutubeDlUpdater : IHostedService
+public class YoutubeDlUpdater : BackgroundService
 {
     public YoutubeDlUpdater(YoutubeDlService youtubeDlService)
     {
@@ -13,16 +13,11 @@ public class YoutubeDlUpdater : IHostedService
     
     private YoutubeDlService YoutubeDlService { get; }
     
-    public async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         while (await PeriodicTimer.WaitForNextTickAsync(cancellationToken) && !cancellationToken.IsCancellationRequested)
         {
             await YoutubeDlService.TryUpdate();
         }
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
     }
 }
