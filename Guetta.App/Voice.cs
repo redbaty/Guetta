@@ -58,6 +58,7 @@ namespace Guetta.App
             {
                 await AudioClient.WaitForPlaybackFinishAsync();
                 AudioClient.Disconnect();
+                AudioClient = null;
             }
 
             if (CurrentDiscordSink != null)
