@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
@@ -40,19 +40,26 @@ namespace Guetta.App
 
         public async Task Join(DiscordChannel voiceChannel)
         {
+            if (AudioClient != null && AudioClient.TargetChannel.Id == voiceChannel.Id)
+                return;
+            
             if (AudioClient != null && AudioClient.TargetChannel.Id != voiceChannel.Id)
             {
-                Disconnect();
+                await Disconnect();
             }
 
             var audioClient = await voiceChannel.ConnectAsync();
             AudioClient = audioClient;
         }
 
-        private void Disconnect()
+        public async Task Disconnect()
         {
-            AudioClient?.Disconnect();
-            
+            if (AudioClient != null)
+            {
+                await AudioClient.WaitForPlaybackFinishAsync();
+                AudioClient.Disconnect();
+            }
+
             if (CurrentDiscordSink != null)
             {
                 CurrentDiscordSink.Dispose();
