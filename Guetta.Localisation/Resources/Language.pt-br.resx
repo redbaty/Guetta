@@ -59,4 +59,7 @@
     <data name="MultipleSongsConfirmationPositiveButton" xml:space="preserve">
         <value>Adicionar playlist</value>
     </data>
+    <data name="SongSkippedRequesterNotFound" xml:space="preserve">
+        <value>Pulando musica {0} já que quem pediu já não está aqui</value>
+    </data>
 </root>

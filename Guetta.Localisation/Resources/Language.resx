@@ -66,4 +66,7 @@
     <data name="MultipleSongsConfirmationNegativeButton" xml:space="preserve">
         <value>Cancel</value>
     </data>
+    <data name="SongSkippedRequesterNotFound" xml:space="preserve">
+        <value>Skipping song {0} since requester is not present</value>
+    </data>
 </root>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -62,14 +62,23 @@ namespace Guetta.App
                     queueItem.CurrentQueueIndex = 0;
                     ReOrderQueue();
 
-                    Logger.LogInformation("Playing {@Title} requested by {@User}", queueItem.VideoInformation.Title, queueItem.User.Username);
+                    var isPresent = queueItem.VoiceChannel.Users.Any(o => o.Id != CurrentItem.User.Id);
 
+                    if (!isPresent)
+                    {
+                        Logger.LogInformation("Skipping since requester is not present");
+                        await LocalisationService.SendMessageAsync(queueItem.TextChannel, "SongSkippedRequesterNotFound", queueItem.VideoInformation.Title, queueItem.User.Mention);
+                        continue;
+                    }
+
+                    Logger.LogInformation("Playing {@Title} requested by {@User}", queueItem.VideoInformation.Title, queueItem.User.Username);
                     await Voice.Join(queueItem.VoiceChannel);
-                    
+
                     CancellationTokenSource?.Dispose();
                     CancellationTokenSource = new CancellationTokenSource();
 
                     queueItem.Playing = true;
+
                     try
                     {
                         await Voice.Play(queueItem, CancellationTokenSource.Token);
