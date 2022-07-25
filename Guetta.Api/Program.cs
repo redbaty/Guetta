@@ -33,9 +33,6 @@ builder.Services.AddHostedService<YoutubeDlUpdater>();
 
 var app = builder.Build();
 
-var ytdlpService = app.Services.GetRequiredService<YoutubeDlService>();
-await ytdlpService.TryUpdate();
-
 var socketClientEventsService = app.Services.GetRequiredService<SocketClientEventsService>();
 socketClientEventsService.Subscribe();
 await discordSocketClient.ConnectAsync();
