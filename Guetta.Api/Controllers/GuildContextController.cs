@@ -1,15 +1,9 @@
 ﻿using DSharpPlus;
+using Guetta.Api.Models;
 using Guetta.App;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Guetta.Api.Controllers;
-
-public record GuildItem
-{
-    public string Id { get; init; }
-    
-    public string? Name { get; init; }
-}
 
 [Route("[controller]")]
 public class GuildContextController : ControllerBase
