@@ -28,6 +28,8 @@ namespace Guetta.App
 
         internal VoiceNextConnection AudioClient { get; private set; }
 
+        public ulong? ChannelId => AudioClient?.TargetChannel?.Id;
+
         private LocalisationService LocalisationService { get; }
 
         private ILogger<Voice> Logger { get; }

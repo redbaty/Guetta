@@ -13,12 +13,13 @@ namespace Guetta.App
 {
     public class SocketClientEventsService
     {
-        public SocketClientEventsService(CommandSolverService commandSolverService, ILogger<SocketClientEventsService> logger, DiscordClient client, IOptions<CommandOptions> commandOptions)
+        public SocketClientEventsService(CommandSolverService commandSolverService, ILogger<SocketClientEventsService> logger, DiscordClient client, IOptions<CommandOptions> commandOptions, GuildContextManager guildContextManager)
         {
             CommandSolverService = commandSolverService;
             Logger = logger;
             Client = client;
             CommandOptions = commandOptions;
+            GuildContextManager = guildContextManager;
         }
 
         private CommandSolverService CommandSolverService { get; }
@@ -26,6 +27,8 @@ namespace Guetta.App
         private ILogger<SocketClientEventsService> Logger { get; }
 
         private IOptions<CommandOptions> CommandOptions { get; }
+
+        private GuildContextManager GuildContextManager { get; }
 
         private DiscordClient Client { get; }
 
@@ -36,6 +39,25 @@ namespace Guetta.App
             Client.MessageCreated += OnMessageReceived;
             Client.Ready += OnReady;
             Client.Zombied += ClientOnZombied;
+            Client.VoiceStateUpdated += ClientOnVoiceStateUpdated;
+        }
+
+        private Task ClientOnVoiceStateUpdated(DiscordClient sender, VoiceStateUpdateEventArgs e)
+        {
+            var guildContext = GuildContextManager.GetOrDefault(e.Guild.Id);
+
+            if (e.Before != null && e.Before.Channel.Id == guildContext.Voice.ChannelId)
+            {
+                var users = e.Before.Channel.Users;
+
+                if (users.All(i => i.IsBot))
+                    if (guildContext is { Voice: { } voice })
+                    {
+                        guildContext.GuildQueue.Clear();
+                    }
+            }
+            
+            return Task.CompletedTask;
         }
 
         private Task ClientOnZombied(DiscordClient sender, ZombiedEventArgs e)
