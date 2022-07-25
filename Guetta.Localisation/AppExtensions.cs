@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 namespace Guetta.Localisation
 {
@@ -8,7 +7,6 @@ namespace Guetta.Localisation
         public static void AddGuettaLocalisation(this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<LocalisationService>();
-            serviceCollection.AddLocalization();
         }
     }
 }
