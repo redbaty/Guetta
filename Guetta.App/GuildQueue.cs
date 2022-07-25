@@ -64,6 +64,8 @@ namespace Guetta.App
 
                     Logger.LogInformation("Playing {@Title} requested by {@User}", queueItem.VideoInformation.Title, queueItem.User.Username);
 
+                    await Voice.Join(queueItem.VoiceChannel);
+                    
                     CancellationTokenSource?.Dispose();
                     CancellationTokenSource = new CancellationTokenSource();
 
@@ -90,14 +92,9 @@ namespace Guetta.App
             foreach (var queueItem in Queue.OrderBy(i => i.CurrentQueueIndex)) yield return queueItem;
         }
 
-        public bool CanPlay()
-        {
-            return Voice.AudioClient is { };
-        }
-
         public bool CanSkip()
         {
-            return CanPlay() && CurrentItem != null;
+            return CurrentItem != null;
         }
 
         public void Enqueue(QueueItem item)

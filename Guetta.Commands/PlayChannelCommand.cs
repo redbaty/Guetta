@@ -47,19 +47,12 @@ namespace Guetta.Commands
             var guildContext = GuildContextManager.GetOrCreate(message.Channel.GuildId.Value);
             var queue = guildContext.GuildQueue;
 
-            if (!queue.CanPlay())
+            if (message.Author is not DiscordMember { VoiceState: { Channel: { } } } discordMember)
             {
-                if (message.Author is DiscordMember { VoiceState: { Channel: { } } } discordMember)
-                {
-                    await guildContext.Voice.Join(discordMember.VoiceState.Channel);
-                }
-                else
-                {
-                    await LocalisationService
-                        .ReplyMessageAsync(message, "NotInChannel", message.Author.Mention)
-                        .DeleteMessageAfter(TimeSpan.FromSeconds(5));
-                    return;
-                }
+                await LocalisationService
+                    .ReplyMessageAsync(message, "NotInChannel", message.Author.Mention)
+                    .DeleteMessageAfter(TimeSpan.FromSeconds(5));
+                return;
             }
 
             await message.Channel.TriggerTypingAsync();
@@ -70,7 +63,8 @@ namespace Guetta.Commands
                 .Select(i => new QueueItem
                 {
                     User = message.Author,
-                    Channel = message.Channel,
+                    TextChannel = message.Channel,
+                    VoiceChannel = discordMember.VoiceState.Channel, 
                     VideoInformation = i
                 }).ToArray();
 

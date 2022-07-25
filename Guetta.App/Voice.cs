@@ -40,14 +40,24 @@ namespace Guetta.App
 
         public async Task Join(DiscordChannel voiceChannel)
         {
+            if (AudioClient != null && AudioClient.TargetChannel.Id != voiceChannel.Id)
+            {
+                Disconnect();
+            }
+
             var audioClient = await voiceChannel.ConnectAsync();
-            SetAudioClient(audioClient);
+            AudioClient = audioClient;
         }
 
-        private void SetAudioClient(VoiceNextConnection audioClient)
+        private void Disconnect()
         {
-            AudioClient?.Dispose();
-            AudioClient = audioClient;
+            AudioClient?.Disconnect();
+            
+            if (CurrentDiscordSink != null)
+            {
+                CurrentDiscordSink.Dispose();
+                CurrentDiscordSink = null;
+            }
         }
 
         public async Task Play(QueueItem queueItem, CancellationToken cancellationToken)
@@ -56,9 +66,9 @@ namespace Guetta.App
 
             try
             {
-                await queueItem.Channel.TriggerTypingAsync();
+                await queueItem.TextChannel.TriggerTypingAsync();
 
-                await LocalisationService.SendMessageAsync(queueItem.Channel, "SongPlaying",
+                await LocalisationService.SendMessageAsync(queueItem.TextChannel, "SongPlaying",
                         queueItem.VideoInformation.Title, queueItem.User.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
 

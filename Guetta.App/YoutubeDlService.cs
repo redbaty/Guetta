@@ -139,7 +139,7 @@ namespace Guetta.App
             {
                 var commandTask = ffmpegCommand.ExecuteAsync(cancellationToken)
                     .Task
-                    .ContinueWith(_ => stream.Complete(), cancellationToken);
+                    .ContinueWith(_ => stream.Complete(), CancellationToken.None);
 
                 await foreach (var bytes in stream.Reader.ReadAllAsync(cancellationToken).ChunkAndMerge(DiscordChunkSize, cancellationToken))
                 {
