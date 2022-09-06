@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,9 +40,9 @@ namespace Guetta.App
 
         private void ReOrderQueue()
         {
-            var index = 1;
+            var index = 0;
 
-            foreach (var queueItem in Queue)
+            foreach (var queueItem in Queue.OrderBy(i => i.CurrentQueueIndex))
             {
                 queueItem.CurrentQueueIndex = index;
                 index++;
@@ -50,6 +51,11 @@ namespace Guetta.App
 
         private void StartQueueLoop()
         {
+            if (LoopQueue is { IsCompleted: true })
+            {
+                LoopQueue = null;
+            }
+
             if (LoopQueue != null || Queue.Count <= 0)
                 return;
 
@@ -82,6 +88,10 @@ namespace Guetta.App
                     {
                         await Voice.Play(queueItem, CancellationTokenSource.Token);
                     }
+                    catch(Exception ex)
+                    {
+                        Logger.LogError(ex, "Failed to play song");    
+                    }
                     finally
                     {
                         queueItem.Playing = false;
@@ -89,8 +99,8 @@ namespace Guetta.App
                     }
                 }
 
-                await Voice.Disconnect();
                 LoopQueue = null;
+                await Voice.Disconnect();
             });
         }
 

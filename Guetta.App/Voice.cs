@@ -26,9 +26,11 @@ namespace Guetta.App
 
         private YoutubeDlService YoutubeDlService { get; }
 
-        internal VoiceNextConnection AudioClient { get; private set; }
+        private VoiceNextConnection AudioClient { get; set; }
 
         public ulong? ChannelId => AudioClient?.TargetChannel?.Id;
+
+        public bool IsPlaying => AudioClient?.IsPlaying ?? false;
 
         private LocalisationService LocalisationService { get; }
 
@@ -92,7 +94,6 @@ namespace Guetta.App
             finally
             {
                 await CurrentDiscordSink.FlushAsync(CancellationToken.None);
-                queueItem = null;
             }
         }
     }
