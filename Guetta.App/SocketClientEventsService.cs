@@ -44,19 +44,22 @@ namespace Guetta.App
 
         private Task ClientOnVoiceStateUpdated(DiscordClient sender, VoiceStateUpdateEventArgs e)
         {
-            var guildContext = GuildContextManager.GetOrDefault(e.Guild.Id);
-
-            if (e.Before != null && e.Before.Channel.Id == guildContext.Voice.ChannelId)
+            if (e != null && e.Guild != null)
             {
-                var users = e.Before.Channel.Users;
+                var guildContext = GuildContextManager.GetOrDefault(e.Guild.Id);
 
-                if (users.All(i => i.IsBot))
-                    if (guildContext is { Voice: { } voice })
-                    {
-                        guildContext.GuildQueue.Clear();
-                    }
+                if (e.Before?.Channel != null && e.Before.Channel?.Id == guildContext.Voice.ChannelId)
+                {
+                    var users = e.Before.Channel?.Users;
+
+                    if (users != null && users.All(i => i.IsBot))
+                        if (guildContext is { Voice: { } voice })
+                        {
+                            guildContext.GuildQueue.Clear();
+                        }
+                }
             }
-            
+
             return Task.CompletedTask;
         }
 
