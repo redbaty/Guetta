@@ -4,18 +4,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Guetta.Abstractions;
-using Guetta.Localisation;
 using Microsoft.Extensions.Logging;
 
 namespace Guetta.App
 {
     public class GuildQueue : IGuildItem
     {
-        public GuildQueue(ILogger<GuildQueue> logger,
-            LocalisationService localisationService, Voice voice, ulong guildId)
+        public GuildQueue(ILogger<GuildQueue> logger, Voice voice, ulong guildId)
         {
             Logger = logger;
-            LocalisationService = localisationService;
             Voice = voice;
             GuildId = guildId;
         }
@@ -35,8 +32,6 @@ namespace Guetta.App
         private CancellationTokenSource CancellationTokenSource { get; set; }
 
         private QueueItem CurrentItem { get; set; }
-
-        private LocalisationService LocalisationService { get; }
 
         private void ReOrderQueue()
         {
@@ -66,16 +61,7 @@ namespace Guetta.App
                     CurrentItem = queueItem;
                     queueItem.CurrentQueueIndex = 0;
                     ReOrderQueue();
-
-                    var isPresent = queueItem.VoiceChannel.Users.Any(o => o.Id != CurrentItem.User.Id);
-
-                    if (!isPresent)
-                    {
-                        Logger.LogInformation("Skipping since requester is not present");
-                        await LocalisationService.SendMessageAsync(queueItem.TextChannel, "SongSkippedRequesterNotFound", queueItem.VideoInformation.Title, queueItem.User.Mention);
-                        continue;
-                    }
-
+                    
                     Logger.LogInformation("Playing {@Title} requested by {@User}", queueItem.VideoInformation.Title, queueItem.User.Username);
                     await Voice.Join(queueItem.VoiceChannel);
 

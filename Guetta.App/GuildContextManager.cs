@@ -28,7 +28,6 @@ public class GuildContextManager
 
     private GuildQueue BuildQueue(ulong guildId, Voice voice) => new(
         ServiceProvider.GetRequiredService<ILogger<GuildQueue>>(),
-        ServiceProvider.GetRequiredService<LocalisationService>(),
         voice,
         guildId
     );
