@@ -48,7 +48,7 @@ namespace Guetta.App
             {
                 var guildContext = GuildContextManager.GetOrDefault(e.Guild.Id);
 
-                if (e.Before?.Channel != null && e.Before.Channel?.Id == guildContext.Voice.ChannelId)
+                if (guildContext != null && e.Before?.Channel != null && e.Before.Channel?.Id == guildContext.Voice.ChannelId)
                 {
                     var users = e.Before.Channel?.Users;
 
