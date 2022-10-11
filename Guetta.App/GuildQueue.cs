@@ -72,7 +72,7 @@ namespace Guetta.App
 
                     try
                     {
-                        await Voice.Play(queueItem, CancellationTokenSource.Token);
+                        await Voice.Play(queueItem, CancellationTokenSource);
                     }
                     catch(Exception ex)
                     {

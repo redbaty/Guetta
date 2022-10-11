@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
+using DSharpPlus.EventArgs;
+using DSharpPlus.Net.WebSocket;
 using DSharpPlus.VoiceNext;
+using Emzi0767.Utilities;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
@@ -10,6 +14,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Guetta.App
 {
+    internal record PlayRequest(QueueItem QueueItem, CancellationTokenSource CancellationToken);
+
     public class Voice : IGuildItem
     {
         public Voice(YoutubeDlService youtubeDlService, LocalisationService localisationService, ulong guildId, ILogger<Voice> logger)
@@ -22,19 +28,21 @@ namespace Guetta.App
 
         public ulong GuildId { get; }
 
-        private VoiceTransmitSink CurrentDiscordSink { get; set; }
+        public VoiceTransmitSink CurrentDiscordSink { get; set; }
 
         private YoutubeDlService YoutubeDlService { get; }
 
-        private VoiceNextConnection AudioClient { get; set; }
+        public VoiceNextConnection AudioClient { get; set; }
 
         public ulong? ChannelId => AudioClient?.TargetChannel?.Id;
 
-        public bool IsPlaying => AudioClient?.IsPlaying ?? false;
+        public bool IsPlaying => AudioClient is { IsPlaying: true } && !AudioClient.IsDisposed();
 
         private LocalisationService LocalisationService { get; }
 
         private ILogger<Voice> Logger { get; }
+
+        private SemaphoreSlim ConnectionSemaphore { get; } = new SemaphoreSlim(1);
 
         public Task ChangeVolume(double newVolume)
         {
@@ -44,9 +52,11 @@ namespace Guetta.App
 
         public async Task Join(DiscordChannel voiceChannel)
         {
+            await ConnectionSemaphore.WaitAsync();
+
             if (AudioClient != null && AudioClient.TargetChannel.Id == voiceChannel.Id)
                 return;
-            
+
             if (AudioClient != null && AudioClient.TargetChannel.Id != voiceChannel.Id)
             {
                 await Disconnect();
@@ -54,14 +64,22 @@ namespace Guetta.App
 
             var audioClient = await voiceChannel.ConnectAsync();
             AudioClient = audioClient;
+
+            ConnectionSemaphore.Release();
         }
 
         public async Task Disconnect()
         {
-            if (AudioClient != null)
+            await ConnectionSemaphore.WaitAsync();
+
+            if (AudioClient != null || AudioClient.IsDisposed())
             {
-                await AudioClient.WaitForPlaybackFinishAsync();
-                AudioClient.Disconnect();
+                if (AudioClient != null && !AudioClient.IsDisposed())
+                {
+                    await AudioClient.WaitForPlaybackFinishAsync();
+                    AudioClient.Disconnect();
+                }
+
                 AudioClient = null;
             }
 
@@ -70,30 +88,49 @@ namespace Guetta.App
                 CurrentDiscordSink.Dispose();
                 CurrentDiscordSink = null;
             }
+
+            ConnectionSemaphore.Release();
         }
 
-        public async Task Play(QueueItem queueItem, CancellationToken cancellationToken)
+        public Task Play(QueueItem queueItem, CancellationTokenSource cancellationToken) => Play(new PlayRequest(queueItem, cancellationToken));
+
+        private async Task Play(PlayRequest playRequest)
         {
             CurrentDiscordSink ??= AudioClient.GetTransmitSink();
 
             try
             {
-                await queueItem.TextChannel.TriggerTypingAsync();
+                var webSocketClient = AudioClient.GetWebsocket();
+                webSocketClient.Disconnected += (sender, args) =>
+                {
+                    if (args.CloseCode == 4014)
+                    {
+                        playRequest.CancellationToken.Cancel();
+                    }
 
-                await LocalisationService.SendMessageAsync(queueItem.TextChannel, "SongPlaying",
-                        queueItem.VideoInformation.Title, queueItem.User.Mention)
+                    return Task.CompletedTask;
+                };
+
+                await playRequest.QueueItem.TextChannel.TriggerTypingAsync();
+
+                await LocalisationService.SendMessageAsync(playRequest.QueueItem.TextChannel, "SongPlaying",
+                        playRequest.QueueItem.VideoInformation.Title, playRequest.QueueItem.User.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
 
-                await YoutubeDlService.SendToAudioSink(queueItem.VideoInformation.Url, CurrentDiscordSink, cancellationToken);
+                await YoutubeDlService.SendToAudioSink(playRequest.QueueItem.VideoInformation.Url, CurrentDiscordSink, playRequest.CancellationToken.Token);
             }
             catch (Exception ex)
             {
-                if (!cancellationToken.IsCancellationRequested)
+                if (!playRequest.CancellationToken.IsCancellationRequested)
                     Logger.LogError(ex, "Failed to play something");
             }
             finally
             {
-                await CurrentDiscordSink.FlushAsync(CancellationToken.None);
+                if (CurrentDiscordSink != null)
+                {
+                    if (!AudioClient.IsDisposed())
+                        await CurrentDiscordSink.FlushAsync(CancellationToken.None);
+                }
             }
         }
     }
