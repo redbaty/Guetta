@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using DSharpPlus;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
+using DSharpPlus.VoiceNext;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Microsoft.Extensions.Logging;
@@ -78,7 +79,7 @@ namespace Guetta.App
         private async Task OnMessageReceived(DiscordClient sender, MessageCreateEventArgs messageCreateEventArgs)
         {
             var message = messageCreateEventArgs.Message;
-            if (message.Content.StartsWith(CommandOptions.Value.Prefix))
+            if (!message.Author.IsBot && message.Content.StartsWith(CommandOptions.Value.Prefix))
             {
                 _ = message.DeleteMessageAfter(TimeSpan.FromSeconds(10));
                 await CommandSolverService.AddMessageToQueue(message);
