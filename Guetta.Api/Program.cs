@@ -12,15 +12,20 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var discordSocketClient = new DiscordClient(new DiscordConfiguration
-{
-    Token =  Environment.GetEnvironmentVariable("TOKEN") ?? throw new MissingEnvironmentVariableException("TOKEN"),
-    TokenType = TokenType.Bot
-});
-discordSocketClient.UseVoiceNext();
-discordSocketClient.UseInteractivity();
 
-builder.Services.AddSingleton(discordSocketClient);
+
+builder.Services.AddSingleton(s =>
+{
+    var discordSocketClient = new DiscordClient(new DiscordConfiguration
+    {
+        Token =  Environment.GetEnvironmentVariable("TOKEN") ?? throw new MissingEnvironmentVariableException("TOKEN"),
+        TokenType = TokenType.Bot,
+        LoggerFactory = s.GetRequiredService<ILoggerFactory>()
+    });
+    discordSocketClient.UseVoiceNext();
+    discordSocketClient.UseInteractivity();
+    return discordSocketClient;
+});
 builder.Services.AddGuettaServices();
 builder.Services.AddGuettaCommands();
 builder.Services.AddGuettaLocalisation();
@@ -33,6 +38,7 @@ builder.Services.AddHostedService<YoutubeDlUpdater>();
 
 var app = builder.Build();
 
+var discordSocketClient = app.Services.GetRequiredService<DiscordClient>();
 var socketClientEventsService = app.Services.GetRequiredService<SocketClientEventsService>();
 socketClientEventsService.Subscribe();
 await discordSocketClient.ConnectAsync();
