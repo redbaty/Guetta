@@ -98,17 +98,17 @@ namespace Guetta.App
         {
             CurrentDiscordSink ??= AudioClient.GetTransmitSink();
             var webSocketClient = AudioClient.GetWebsocket();
-            
+
             Task WebSocketClientOnDisconnected(IWebSocketClient sender, SocketCloseEventArgs args)
             {
-                if (args.CloseCode == 4014)
+                if (!args.Handled && args.CloseCode == 4014)
                 {
                     playRequest.CancellationToken.Cancel();
                 }
 
                 return Task.CompletedTask;
             }
-            
+
             webSocketClient.Disconnected += WebSocketClientOnDisconnected;
 
             try
@@ -129,11 +129,11 @@ namespace Guetta.App
             finally
             {
                 webSocketClient.Disconnected -= WebSocketClientOnDisconnected;
-                
+
                 if (CurrentDiscordSink != null)
                 {
                     if (!AudioClient.IsDisposed())
-                        await CurrentDiscordSink.FlushAsync(playRequest.CancellationToken.Token);
+                        await CurrentDiscordSink.FlushAsync(playRequest.CancellationToken.Token).ContinueWith(_ => { });
                 }
             }
         }
