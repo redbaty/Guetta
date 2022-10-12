@@ -97,20 +97,22 @@ namespace Guetta.App
         private async Task Play(PlayRequest playRequest)
         {
             CurrentDiscordSink ??= AudioClient.GetTransmitSink();
+            var webSocketClient = AudioClient.GetWebsocket();
+            
+            Task WebSocketClientOnDisconnected(IWebSocketClient sender, SocketCloseEventArgs args)
+            {
+                if (args.CloseCode == 4014)
+                {
+                    playRequest.CancellationToken.Cancel();
+                }
+
+                return Task.CompletedTask;
+            }
+            
+            webSocketClient.Disconnected += WebSocketClientOnDisconnected;
 
             try
             {
-                var webSocketClient = AudioClient.GetWebsocket();
-                webSocketClient.Disconnected += (sender, args) =>
-                {
-                    if (args.CloseCode == 4014)
-                    {
-                        playRequest.CancellationToken.Cancel();
-                    }
-
-                    return Task.CompletedTask;
-                };
-
                 await playRequest.QueueItem.TextChannel.TriggerTypingAsync();
 
                 await LocalisationService.SendMessageAsync(playRequest.QueueItem.TextChannel, "SongPlaying",
@@ -126,10 +128,12 @@ namespace Guetta.App
             }
             finally
             {
+                webSocketClient.Disconnected -= WebSocketClientOnDisconnected;
+                
                 if (CurrentDiscordSink != null)
                 {
                     if (!AudioClient.IsDisposed())
-                        await CurrentDiscordSink.FlushAsync(CancellationToken.None);
+                        await CurrentDiscordSink.FlushAsync(playRequest.CancellationToken.Token);
                 }
             }
         }
