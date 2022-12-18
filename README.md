@@ -1,5 +1,5 @@
-![Guetta Logo](/assets/logo-white.png#gh-dark-mode-only | width=100)
-![Guetta Logo](/assets/logo-dark.png#gh-light-mode-only | width=100)
+![Guetta Logo](/assets/logo-white.png#gh-dark-mode-only)
+![Guetta Logo](/assets/logo-dark.png#gh-light-mode-only)
 
 ## Introduction
 
