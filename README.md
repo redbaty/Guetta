@@ -1,5 +1,5 @@
-![Guetta Logo](/assets/logo-white.png#gh-dark-mode-only | width=100)
-![Guetta Logo](/assets/logo-dark.png#gh-light-mode-only | width=100)
+<img src="/assets/logo-white.png#gh-dark-mode-only" width=50% height=50%>
+<img src="/assets/logo-dark.png#gh-light-mode-only " width=50% height=50%>
 
 ## Introduction
 
