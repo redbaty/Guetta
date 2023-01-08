@@ -27,8 +27,7 @@ namespace Guetta.App
         }
 
         public ulong GuildId { get; }
-
-        public VoiceTransmitSink CurrentDiscordSink { get; set; }
+        
 
         private YoutubeDlService YoutubeDlService { get; }
 
@@ -42,18 +41,16 @@ namespace Guetta.App
 
         private ILogger<Voice> Logger { get; }
 
-        private SemaphoreSlim ConnectionSemaphore { get; } = new SemaphoreSlim(1);
-
         public Task ChangeVolume(double newVolume)
         {
-            CurrentDiscordSink.VolumeModifier = newVolume;
+            if(AudioClient?.GetTransmitSink() is { } transmitSink)
+                transmitSink.VolumeModifier = newVolume;
+            
             return Task.CompletedTask;
         }
 
         public async Task Join(DiscordChannel voiceChannel)
         {
-            await ConnectionSemaphore.WaitAsync();
-
             if (AudioClient != null && AudioClient.TargetChannel.Id == voiceChannel.Id)
                 return;
 
@@ -64,39 +61,40 @@ namespace Guetta.App
 
             var audioClient = await voiceChannel.ConnectAsync();
             AudioClient = audioClient;
-
-            ConnectionSemaphore.Release();
         }
 
         public async Task Disconnect()
         {
-            await ConnectionSemaphore.WaitAsync();
-
             if (AudioClient != null || AudioClient.IsDisposed())
             {
                 if (AudioClient != null && !AudioClient.IsDisposed())
                 {
-                    await AudioClient.WaitForPlaybackFinishAsync();
+                    if (AudioClient.IsPlaying)
+                    {
+                        Logger.LogInformation("Going to wait for playback to finish");
+                        
+                        var timeoutTask = Task.Delay(TimeSpan.FromSeconds(10));
+                        var waitForFinishTask = AudioClient.WaitForPlaybackFinishAsync();
+                        var endedTask = await Task.WhenAny(waitForFinishTask, timeoutTask);
+
+                        if (endedTask == timeoutTask)
+                        {
+                            Logger.LogWarning("Waiting for playback to finish timed out");
+                        }
+                    }
+
                     AudioClient.Disconnect();
                 }
 
                 AudioClient = null;
             }
-
-            if (CurrentDiscordSink != null)
-            {
-                CurrentDiscordSink.Dispose();
-                CurrentDiscordSink = null;
-            }
-
-            ConnectionSemaphore.Release();
         }
 
         public Task Play(QueueItem queueItem, CancellationTokenSource cancellationToken) => Play(new PlayRequest(queueItem, cancellationToken));
 
         private async Task Play(PlayRequest playRequest)
         {
-            CurrentDiscordSink ??= AudioClient.GetTransmitSink();
+            var CurrentDiscordSink = AudioClient.GetTransmitSink();
             var webSocketClient = AudioClient.GetWebsocket();
 
             Task WebSocketClientOnDisconnected(IWebSocketClient sender, SocketCloseEventArgs args)

@@ -31,6 +31,8 @@ namespace Guetta.App
 
         private CancellationTokenSource CancellationTokenSource { get; set; }
 
+        private CancellationTokenSource QueueCancellationTokenSource { get; set; } = new();
+
         private QueueItem CurrentItem { get; set; }
 
         private void ReOrderQueue()
@@ -51,43 +53,75 @@ namespace Guetta.App
                 LoopQueue = null;
             }
 
-            if (LoopQueue != null || Queue.Count <= 0)
+            if (Queue.Count <= 0)
                 return;
 
-            LoopQueue = Task.Run(async () =>
+            if (LoopQueue != null)
             {
-                while (Queue.TryDequeue(out var queueItem))
+                if (Queue.Count > 0 && CurrentItem == null)
                 {
-                    CurrentItem = queueItem;
-                    queueItem.CurrentQueueIndex = 0;
-                    ReOrderQueue();
-                    
-                    Logger.LogInformation("Playing {@Title} requested by {@User}", queueItem.VideoInformation.Title, queueItem.User.Username);
-                    await Voice.Join(queueItem.VoiceChannel);
-
-                    CancellationTokenSource?.Dispose();
-                    CancellationTokenSource = new CancellationTokenSource();
-
-                    queueItem.Playing = true;
-
-                    try
-                    {
-                        await Voice.Play(queueItem, CancellationTokenSource);
-                    }
-                    catch(Exception ex)
-                    {
-                        Logger.LogError(ex, "Failed to play song");    
-                    }
-                    finally
-                    {
-                        queueItem.Playing = false;
-                        CurrentItem = null;
-                    }
+                    QueueCancellationTokenSource.Cancel();
+                    QueueCancellationTokenSource = new CancellationTokenSource();
+                    LoopQueue = null;
                 }
+                else
+                {
+                    return;
+                }
+            }
 
-                LoopQueue = null;
-                await Voice.Disconnect();
-            });
+            LoopQueue = Task.Run(async () =>
+                {
+                    while (Queue.TryDequeue(out var queueItem))
+                    {
+                        CurrentItem = queueItem;
+                        queueItem.CurrentQueueIndex = 0;
+                        ReOrderQueue();
+
+                        Logger.LogInformation("Playing {@Title} requested by {@User}", queueItem.VideoInformation.Title, queueItem.User.Username);
+                        await Voice.Join(queueItem.VoiceChannel);
+
+                        CancellationTokenSource?.Dispose();
+                        CancellationTokenSource = new CancellationTokenSource();
+
+                        queueItem.Playing = true;
+
+                        try
+                        {
+                            Logger.LogInformation("Goind to play song {@Url} queued by {@Requester}", queueItem.VideoInformation.Url, queueItem.User.Username);
+                            await Voice.Play(queueItem, CancellationTokenSource);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "Failed to play song");
+                        }
+                        finally
+                        {
+                            queueItem.Playing = false;
+                            CurrentItem = null;
+                        }
+                    }
+
+                    Logger.LogInformation("Queue is ending");
+
+                    await Voice.Disconnect()
+                        .ContinueWith(t =>
+                        {
+                            if (!t.IsCompletedSuccessfully)
+                                Logger.LogError(t.Exception, "Failed to disconnect from voice");
+                        });
+                    
+                    Logger.LogInformation("Queue has ended");
+                }, QueueCancellationTokenSource.Token)
+                .ContinueWith(t =>
+                {
+                    LoopQueue = null;
+
+                    if (!t.IsCompletedSuccessfully)
+                    {
+                        Logger.LogError(t.Exception, "Queue task has ended with an error");
+                    }
+                });
         }
 
         public IEnumerable<QueueItem> GetQueueItems()
