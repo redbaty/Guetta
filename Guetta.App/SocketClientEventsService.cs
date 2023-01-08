@@ -78,7 +78,8 @@ namespace Guetta.App
 
         private async Task OnMessageReceived(DiscordClient sender, MessageCreateEventArgs messageCreateEventArgs)
         {
-            var message = messageCreateEventArgs.Message;
+            var message = await messageCreateEventArgs.Channel.GetMessageAsync(messageCreateEventArgs.Message.Id, true);
+            
             if (!message.Author.IsBot && message.Content.StartsWith(CommandOptions.Value.Prefix))
             {
                 _ = message.DeleteMessageAfter(TimeSpan.FromSeconds(10));
