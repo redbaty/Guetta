@@ -2,7 +2,7 @@
 RUN apk update && apk add wget
 RUN wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
 RUN mkdir /ffmpeg
-RUN tar -C /ffmpeg -xvf ffmpeg-master-latest-linux64-gpl.tar.xz --strip-components=1
+RUN tar -C /ffmpeg -xvf ffmpeg-release-amd64-static.tar.xz --strip-components=1
 
 FROM mcr.microsoft.com/dotnet/runtime:7.0 AS base
 WORKDIR /app
@@ -22,6 +22,7 @@ COPY --from=build /app/publish .
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
 RUN chmod a+rx /usr/local/bin/yt-dlp
 
-COPY --from=ffmpeg-base /ffmpeg/bin/ /usr/local/bin/
+COPY --from=ffmpeg-base /ffmpeg/ffmpeg /usr/local/bin/
+COPY --from=ffmpeg-base /ffmpeg/ffprobe /usr/local/bin/
 RUN chmod a+rx /usr/local/bin/ffmpeg
 ENTRYPOINT ["dotnet", "Guetta.dll"]
