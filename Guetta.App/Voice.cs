@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using DSharpPlus.Entities;
 using DSharpPlus.EventArgs;
 using DSharpPlus.Net.WebSocket;
 using DSharpPlus.VoiceNext;
-using Emzi0767.Utilities;
 using Guetta.Abstractions;
 using Guetta.App.Extensions;
 using Guetta.Localisation;
@@ -94,12 +92,12 @@ namespace Guetta.App
 
         private async Task Play(PlayRequest playRequest)
         {
-            var CurrentDiscordSink = AudioClient.GetTransmitSink();
+            var currentDiscordSink = AudioClient.GetTransmitSink();
             var webSocketClient = AudioClient.GetWebsocket();
 
             Task WebSocketClientOnDisconnected(IWebSocketClient sender, SocketCloseEventArgs args)
             {
-                if (!args.Handled && args.CloseCode == 4014)
+                if (args.CloseCode == 4014)
                 {
                     playRequest.CancellationToken.Cancel();
                 }
@@ -117,7 +115,7 @@ namespace Guetta.App
                         playRequest.QueueItem.VideoInformation.Title, playRequest.QueueItem.User.Mention)
                     .DeleteMessageAfter(TimeSpan.FromSeconds(15));
 
-                await YoutubeDlService.SendToAudioSink(playRequest.QueueItem.VideoInformation.Url, CurrentDiscordSink, playRequest.CancellationToken.Token);
+                await YoutubeDlService.SendToAudioSink(playRequest.QueueItem.VideoInformation.Url, currentDiscordSink, playRequest.CancellationToken.Token);
             }
             catch (Exception ex)
             {
@@ -128,10 +126,10 @@ namespace Guetta.App
             {
                 webSocketClient.Disconnected -= WebSocketClientOnDisconnected;
 
-                if (CurrentDiscordSink != null)
+                if (currentDiscordSink != null)
                 {
                     if (!AudioClient.IsDisposed())
-                        await CurrentDiscordSink.FlushAsync(playRequest.CancellationToken.Token).ContinueWith(_ => { });
+                        await currentDiscordSink.FlushAsync(playRequest.CancellationToken.Token).ContinueWith(_ => { });
                 }
             }
         }
