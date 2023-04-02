@@ -41,6 +41,8 @@ namespace Guetta.App
             Client.Ready += OnReady;
             Client.Zombied += ClientOnZombied;
             Client.VoiceStateUpdated += ClientOnVoiceStateUpdated;
+            
+            Logger.LogInformation("Prefix in use: {Prefix}", CommandOptions.Value.Prefix);
         }
 
         private Task ClientOnVoiceStateUpdated(DiscordClient sender, VoiceStateUpdateEventArgs e)
