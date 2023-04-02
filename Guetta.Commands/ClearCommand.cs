@@ -25,7 +25,7 @@ namespace Guetta.Commands
             var timeLimit = DateTime.Now.AddDays(-14);
             var messages = await message.Channel.GetMessagesAsync();
             var messagesToDelete = messages
-                .Where(chatMessage => (chatMessage.Author.Id == DiscordSocketClient.CurrentUser.Id || chatMessage.Content.StartsWith(CommandOptions.Value.Prefix) && chatMessage.CreationTimestamp >= timeLimit)
+                .Where(chatMessage => (chatMessage.Author.Id == DiscordSocketClient.CurrentUser.Id || chatMessage.Content.StartsWith(CommandOptions.Value.Prefix)) && chatMessage.CreationTimestamp >= timeLimit)
                 .ToList();
 
             await message.Channel.DeleteMessagesAsync(messagesToDelete);
