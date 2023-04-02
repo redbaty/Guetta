@@ -81,6 +81,7 @@ namespace Guetta.App
         private async Task OnMessageReceived(DiscordClient sender, MessageCreateEventArgs messageCreateEventArgs)
         {
             var message = await messageCreateEventArgs.Channel.GetMessageAsync(messageCreateEventArgs.Message.Id, true);
+            Logger.LogInformation("Message received: {Message} {IsAuthorBot}", message.Content, message.Author.IsBot);
             
             if (!message.Author.IsBot && message.Content.StartsWith(CommandOptions.Value.Prefix))
             {
