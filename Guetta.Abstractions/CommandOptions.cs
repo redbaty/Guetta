@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Guetta.Abstractions
 {
@@ -7,6 +8,6 @@ namespace Guetta.Abstractions
     {
         public Dictionary<string, Type> Commands { get; } = new();
 
-        public char Prefix { get; set; } = '!';
+        public char Prefix { get; set; } = Environment.GetEnvironmentVariable("COMMAND_PREFIX")?.First() ?? '!';
     }
 }
