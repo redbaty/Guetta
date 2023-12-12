@@ -7,11 +7,12 @@ RUN tar -C /ffmpeg -xvf ffmpeg-release-amd64-static.tar.xz --strip-components=1
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG TARGETARCH
 WORKDIR /src
 COPY . .
 WORKDIR "/src/Guetta"
-RUN dotnet publish "Guetta.csproj" -c Release -o /app/publish
+RUN dotnet publish "Guetta.csproj" -c Release -o /app/publish -a $TARGETARCH
 
 FROM base AS final
 
